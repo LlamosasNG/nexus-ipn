@@ -76,7 +76,7 @@ export default function CreatePlanningView() {
             <LoadingApp />
           ) : (
             currentSection === 1 && (
-              <PlanningSection1 subject={planning?.subject} />
+              <PlanningSection1 subject={planning?.subject ?? undefined} />
             )
           )}
           {currentSection === 2 && <PlanningSection2 />}

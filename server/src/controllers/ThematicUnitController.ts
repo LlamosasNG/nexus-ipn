@@ -20,8 +20,14 @@ export class ThematicUnitController {
           .json({ error: 'Planeación no encontrada' })
       }
 
+      const unitCount = await ThematicUnit.count({ where: { planningId } })
+      if (unitCount >= 15) {
+        return res.status(400).json({ error: 'Máximo 15 unidades temáticas permitidas' })
+      }
+
       const thematicUnit = await ThematicUnit.create({
         planningId: Number(planningId),
+        order: unitCount,
         ...req.body,
       })
 
@@ -38,8 +44,11 @@ export class ThematicUnitController {
 
       const units = await ThematicUnit.findAll({
         where: { planningId },
-        include: [SessionActivity],
-        order: [['unitNumber', 'ASC']],
+        include: [{
+          model: SessionActivity,
+          order: [['order', 'ASC']]
+        }],
+        order: [['order', 'ASC']],
       })
 
       res.json(units)
@@ -107,6 +116,45 @@ export class ThematicUnitController {
     } catch (error) {
       console.log(error)
       res.status(500).json({ error: 'Error al eliminar la unidad temática' })
+    }
+  }
+
+  static reorder = async (req: Request, res: Response) => {
+    try {
+      const { planningId } = req.params
+      const { orderedIds }: { orderedIds: number[] } = req.body
+
+      if (!Array.isArray(orderedIds)) {
+        return res.status(400).json({ error: 'orderedIds debe ser un array' })
+      }
+
+      for (let i = 0; i < orderedIds.length; i++) {
+        await ThematicUnit.update(
+          { order: i },
+          { where: { id: orderedIds[i], planningId } }
+        )
+      }
+
+      res.json({ message: 'Unidades reordenadas' })
+    } catch (error) {
+      console.log(error)
+      res.status(500).json({ error: 'Error al reordenar las unidades temáticas' })
+    }
+  }
+
+  static getSessionsByUnit = async (req: Request, res: Response) => {
+    try {
+      const unitId = Number(req.params.unitId)
+
+      const sessions = await SessionActivity.findAll({
+        where: { thematicUnitId: unitId },
+        order: [['order', 'ASC']],
+      })
+
+      res.json(sessions)
+    } catch (error) {
+      console.log(error)
+      res.status(500).json({ error: 'Error al obtener las sesiones' })
     }
   }
 

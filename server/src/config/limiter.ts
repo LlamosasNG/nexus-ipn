@@ -1,11 +1,11 @@
 import type { Request } from 'express'
-import rateLimit from 'express-rate-limit'
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit'
 
 const standardHeaders = true
 const legacyHeaders = false
 
 const keyGenerator = (req: Request): string => {
-  return req.ip || req.socket.remoteAddress || 'unknown'
+  return ipKeyGenerator(req.ip || req.socket.remoteAddress || 'unknown')
 }
 
 const messageGeneric = {

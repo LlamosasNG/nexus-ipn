@@ -16,11 +16,11 @@ import {
 } from './section1'
 
 type PlanningSection1Props = {
-  subject: Subject
+  subject?: Subject
 }
 
 function buildDefaultValues(
-  subject: Subject,
+  subject?: Subject,
   generalData?: GeneralDataFormValues | null,
   userName?: string,
   academyName?: string
@@ -113,8 +113,17 @@ export function PlanningSection1({ subject }: PlanningSection1Props) {
     mutate({ planningId, formData })
   }
 
+  const handleInvalid = (errors: Record<string, { message?: string }>) => {
+    const messages = Object.values(errors)
+      .filter(e => e?.message)
+      .map(e => e.message)
+    if (messages.length) {
+      toast.error(messages.join('\n'))
+    }
+  }
+
   return (
-    <form onSubmit={handleSubmit(handleSend)}>
+    <form onSubmit={handleSubmit(handleSend, handleInvalid)}>
       <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
         <div className="mb-6">
           <h3 className="text-base font-semibold text-gray-700">

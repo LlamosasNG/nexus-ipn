@@ -11,6 +11,7 @@ import {
   Table,
 } from 'sequelize-typescript'
 import GeneralData from './GeneralData'
+import PlanningDidacticOrganization from './PlanningDidacticOrganization'
 import PlagiarismTool from './PlagiarismTool'
 import Reference from './Reference'
 import Subject from './Subject'
@@ -77,6 +78,9 @@ export default class Planning extends Model {
 
   @HasOne(() => TransversalAxis)
   declare transversalAxis: TransversalAxis
+
+  @HasOne(() => PlanningDidacticOrganization)
+  declare didacticOrganization: PlanningDidacticOrganization
 
   @HasMany(() => ThematicUnit)
   declare thematicUnits: ThematicUnit[]

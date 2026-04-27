@@ -1,3 +1,4 @@
+import { DidacticOrganizationController } from '@/controllers/DidacticOrganizationController'
 import { GeneralDataController } from '@/controllers/GeneralDataController'
 import { PlagiarismToolController } from '@/controllers/PlagiarismToolController'
 import { PlanningController } from '@/controllers/PlanningController'
@@ -58,6 +59,22 @@ router.get(
 )
 
 router.post(
+  '/:planningId/didactic-organization',
+  planningWriteLimiter,
+  DidacticOrganizationController.createOrUpdate
+)
+router.put(
+  '/:planningId/didactic-organization',
+  planningWriteLimiter,
+  DidacticOrganizationController.createOrUpdate
+)
+router.get(
+  '/:planningId/didactic-organization',
+  readLimiter,
+  DidacticOrganizationController.get
+)
+
+router.post(
   '/:planningId/thematic-units',
   planningWriteLimiter,
   ThematicUnitController.create
@@ -81,6 +98,16 @@ router.delete(
   '/:planningId/thematic-units/:id',
   writeLimiter,
   ThematicUnitController.delete
+)
+router.put(
+  '/:planningId/thematic-units/reorder',
+  planningWriteLimiter,
+  ThematicUnitController.reorder
+)
+router.get(
+  '/:planningId/thematic-units/:unitId/sessions',
+  readLimiter,
+  ThematicUnitController.getSessionsByUnit
 )
 
 router.post(

@@ -6,7 +6,6 @@ import type { Section1ControlProps } from './types'
 export function SemesterModalityRow({
   register,
   control,
-  errors,
 }: Section1ControlProps) {
   return (
     <div className="flex gap-4">

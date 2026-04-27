@@ -76,4 +76,11 @@ export default class SessionActivity extends Model {
     type: DataType.STRING,
   })
   declare evaluationInstrument: string
+
+  // Order for sorting sessions
+  @Column({
+    type: DataType.INTEGER,
+    defaultValue: 0,
+  })
+  declare order: number
 }

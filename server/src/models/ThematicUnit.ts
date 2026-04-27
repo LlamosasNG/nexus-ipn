@@ -26,36 +26,12 @@ export default class ThematicUnit extends Model {
   @BelongsTo(() => Planning)
   declare planning: Planning
 
-  // 3.5 Número de unidad temática (I, II, III...)
-  @AllowNull(false)
+  // Order for sorting units
   @Column({
     type: DataType.INTEGER,
+    defaultValue: 0,
   })
-  declare unitNumber: number
-
-  // 3.1 Unidad de aprendizaje
-  @Column({
-    type: DataType.STRING,
-  })
-  declare learningUnit: string
-
-  // 3.2 Propósito u objetivo general
-  @Column({
-    type: DataType.TEXT,
-  })
-  declare generalObjective: string
-
-  // 3.3 Estrategia de aprendizaje
-  @Column({
-    type: DataType.TEXT,
-  })
-  declare learningStrategy: string
-
-  // 3.4 Métodos de enseñanza
-  @Column({
-    type: DataType.TEXT,
-  })
-  declare teachingMethods: string
+  declare order: number
 
   // 3.5 Nombre de la unidad temática
   @AllowNull(false)
@@ -70,26 +46,43 @@ export default class ThematicUnit extends Model {
   })
   declare competenceObjective: string
 
-  // Fechas de la unidad
+  // 3.7 Periodo de desarrollo de la unidad temática
   @Column({
-    type: DataType.DATEONLY,
+    type: DataType.STRING,
   })
-  declare startDate: string
+  declare developmentPeriod: string
 
+  // 3.8 Horas a la semana en cada espacio de mediación docente
   @Column({
-    type: DataType.DATEONLY,
+    type: DataType.JSONB,
   })
-  declare endDate: string
+  declare weeklyHours: {
+    classroom: number
+    laboratory: number
+    workshop: number
+    clinic: number
+    other: number
+    total: number
+  }
 
-  @Column({
-    type: DataType.DATEONLY,
-  })
-  declare evaluationDate: string
-
+  // 3.9 No. de sesiones totales de la unidad temática (calculated)
   @Column({
     type: DataType.INTEGER,
+    defaultValue: 0,
   })
   declare totalSessions: number
+
+  // 3.10 Periodo de registro de evaluación ordinaria
+  @Column({
+    type: DataType.STRING,
+  })
+  declare evaluationPeriod: string
+
+  // 3.11 Aprendizajes esperados
+  @Column({
+    type: DataType.JSONB,
+  })
+  declare expectedLearnings: string[]
 
   // 3.19 Precisiones de la unidad temática
   @Column({

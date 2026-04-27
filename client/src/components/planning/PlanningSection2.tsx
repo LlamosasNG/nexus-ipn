@@ -1,83 +1,96 @@
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
+import {
+  getTransversalAxes,
+  createOrUpdateTransversalAxes,
+} from '@/api/TransversalAxisAPI'
+import { LoadingApp } from '@/components/LoadingApp'
+import type { TransversalAxisFormValues } from '@/types'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { useEffect } from 'react'
+import { useForm } from 'react-hook-form'
+import { useParams } from 'react-router'
+import { toast } from 'sonner'
+import { LearningRelationRow, TransversalAxesRow } from './section2'
+
+function buildDefaultValues(
+  transversalAxis?: TransversalAxisFormValues | null
+): TransversalAxisFormValues {
+  return {
+    antecedentes: transversalAxis?.antecedentes || '',
+    laterales: transversalAxis?.laterales || '',
+    subsecuentes: transversalAxis?.subsecuentes || '',
+    socialCommitment: transversalAxis?.socialCommitment || '',
+    genderPerspective: transversalAxis?.genderPerspective || '',
+    internationalization: transversalAxis?.internationalization || '',
+  }
+}
 
 export function PlanningSection2() {
+  const params = useParams()
+  const planningId = params.planningId!
+
+  const { data: transversalAxis, isLoading } = useQuery({
+    queryKey: ['transversal-axes', planningId],
+    queryFn: () => getTransversalAxes(planningId),
+    retry: false,
+  })
+
+  const { mutate } = useMutation({
+    mutationFn: createOrUpdateTransversalAxes,
+    onSuccess: (data) => {
+      toast.success(data)
+    },
+    onError: (error) => {
+      toast.error(error.message)
+    },
+  })
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+  } = useForm<TransversalAxisFormValues>({
+    defaultValues: buildDefaultValues(null),
+  })
+
+  useEffect(() => {
+    if (transversalAxis) {
+      reset(buildDefaultValues(transversalAxis))
+    }
+  }, [transversalAxis, reset])
+
+  if (isLoading) return <LoadingApp />
+
+  const handleSend = (formData: TransversalAxisFormValues) => {
+    mutate({ planningId, formData })
+  }
+
+  const handleInvalid = (errors: Record<string, { message?: string }>) => {
+    const messages = Object.values(errors)
+      .filter(e => e?.message)
+      .map(e => e.message)
+    if (messages.length) {
+      toast.error(messages.join('\n'))
+    }
+  }
+
   return (
-    <div className=" animate-in fade-in slide-in-from-right-4 duration-500">
-      {/* Section Title */}
-      <div className="mb-6">
-        <h3 className="text-base font-semibold text-gray-700">
-          2. Relación con otras unidades de aprendizaje y ejes transversales
-        </h3>
-      </div>
-
-      {/* 2.1 Unidades de aprendizaje con relación directa */}
-      <div className="bg-[#7C2855] px-4 py-2 text-center border border-dashed">
-        <h4 className="text-sm font-bold text-white">
-          2.1 Unidades de aprendizaje con relación directa
-        </h4>
-      </div>
-
-      <div className="grid grid-cols-[auto_1fr] border border-dashed border-gray-400">
-        <Label className="bg-gray-400 px-3 py-2 text-sm border-x border-b border-dashed border-gray-600">
-          2.1.1 Antecedentes
-        </Label>
-        <Input className="rounded-none border-b border-dashed" />
-
-        <Label className="bg-gray-400 px-3 py-2 text-sm border-x border-b border-dashed border-gray-600">
-          2.1.2 Laterales
-        </Label>
-        <Input className="rounded-none border-b border-dashed" />
-
-        <Label className="bg-gray-400 px-3 py-2 text-sm border-x border-dashed border-gray-600">
-          2.1.3 Subsecuentes
-        </Label>
-        <Input className="rounded-none border-none" />
-      </div>
-
-      {/* 2.2 Descripción de cómo se fomenta cada eje transversal */}
-      <div>
-        <div className="mt-8 bg-[#7C2855] px-4 py-2 text-center border border-dashed">
-          <h4 className="text-sm font-bold text-white">
-            2.2 Descripción de cómo se fomenta cada eje transversal
-            institucional en la unidad de aprendizaje
-          </h4>
+    <form onSubmit={handleSubmit(handleSend, handleInvalid)}>
+      <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
+        <div className="mb-6">
+          <h3 className="text-base font-semibold text-gray-700">
+            2. Relación con otras unidades de aprendizaje y ejes transversales
+          </h3>
         </div>
 
-        <div>
-          {/* 2.2.1 Compromiso social y sustentabilidad */}
-          <div className="grid grid-cols-[300px_1fr] border border-dashed border-gray-600">
-            <div className="bg-gray-400 px-4 flex items-center h-30 border-r border-gray-600 border-dashed">
-              <Label className="text-sm">
-                2.2.1 Compromiso social y sustentabilidad
-              </Label>
-            </div>
-            <Textarea rows={6} className="rounded-none" />
-          </div>
+        <LearningRelationRow register={register} />
 
-          {/* 2.2.2 Perspectiva, inclusión y erradicación de la violencia de género */}
-          <div className="grid grid-cols-[300px_1fr] border-dashed border-x border-b border-gray-600">
-            <div className="bg-gray-400 px-4 flex items-center h-30 border-r border-gray-600 border-dashed">
-              <Label className="text-sm">
-                2.2.2 Perspectiva, inclusión y erradicación de la violencia de
-                género
-              </Label>
-            </div>
-            <Textarea rows={6} className="rounded-none" />
-          </div>
-
-          {/* 2.2.3 Internacionalización del IPN */}
-          <div className="grid grid-cols-[300px_1fr] border-dashed border-x border-b border-gray-600">
-            <div className="bg-gray-400 px-4 py-3 flex items-center h-30 border-r border-gray-600 border-dashed">
-              <Label className="text-sm">
-                2.2.3 Internacionalización del IPN
-              </Label>
-            </div>
-            <Textarea rows={6} className="rounded-none" />
-          </div>
-        </div>
+        <TransversalAxesRow register={register} />
       </div>
-    </div>
+      <input
+        type="submit"
+        value="Guardar"
+        className="bg-[#7C2855] hover:bg-[#7C2855]/80 w-full p-3 text-white font-black text-xl cursor-pointer mt-5"
+      />
+    </form>
   )
 }
