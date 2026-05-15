@@ -6,6 +6,8 @@ import { corsConfig } from './config/cors'
 import { db } from './config/db'
 import academyRoutes from './routes/academyRoutes'
 import authRoutes from './routes/authRoutes'
+import departmentHeadRoutes from './routes/departmentHeadRoutes'
+import digitalResourceRoutes from './routes/digitalResourceRoutes'
 import planningRoutes from './routes/planningRoutes'
 import subjectRoutes from './routes/subjectRoutes'
 
@@ -26,8 +28,10 @@ app.use(cors(corsConfig))
 app.use(morgan('dev'))
 app.use(express.json())
 app.use('/api/auth', authRoutes)
+app.use('/api/department-head', departmentHeadRoutes)
 app.use('/api/academies', academyRoutes)
 app.use('/api/subjects', subjectRoutes)
 app.use('/api/plannings', planningRoutes)
+app.use('/api/digital-resources', digitalResourceRoutes)
 
 export default app

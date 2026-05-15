@@ -9,57 +9,64 @@
 
 export const users = [
   {
-    name: 'Juan Pérez García',
-    email: 'juan.perez@ipn.mx',
-    password: 'password123', // Se hasheará en el seed
+    name: "Juan Pérez García",
+    email: "juan.perez@ipn.mx",
+    password: "password123", // Se hasheará en el seed
     academyId: 2, // Academia de Homeopatía
-    role: 'Docente' as const,
+    role: "Docente" as const,
     confirmed: true,
-    subjectCodes: ['TH-101', 'TH-201', 'TH-102'], // Materias que imparte
+    subjectCodes: ["TH-101", "TH-201", "TH-102"], // Materias que imparte
   },
   {
-    name: 'María López Hernández',
-    email: 'maria.lopez@ipn.mx',
-    password: 'password123',
+    name: "María López Hernández",
+    email: "maria.lopez@ipn.mx",
+    password: "password123",
     academyId: 5, // Academia de Ciencias Básicas
-    role: 'Docente' as const,
+    role: "Docente" as const,
     confirmed: true,
-    subjectCodes: ['M-101', 'M-102', 'M-103', 'M-201'],
+    subjectCodes: ["M-101", "M-102", "M-103", "M-201"],
   },
   {
-    name: 'Carlos Rodríguez Sánchez',
-    email: 'carlos.rodriguez@ipn.mx',
-    password: 'password123',
+    name: "Carlos Rodríguez Sánchez",
+    email: "carlos.rodriguez@ipn.mx",
+    password: "password123",
     academyId: 3, // Academia de Acupuntura y Rehabilitación
-    role: 'Docente' as const,
+    role: "Docente" as const,
     confirmed: true,
-    subjectCodes: ['M-101', 'M-102', 'M-103', 'M-201'],
+    subjectCodes: ["M-101", "M-102", "M-103", "M-201"],
   },
   {
-    name: 'Ana Martínez Torres',
-    email: 'ana.martinez@ipn.mx',
-    password: 'password123',
+    name: "Ana Martínez Torres",
+    email: "ana.martinez@ipn.mx",
+    password: "password123",
     academyId: 4, // Academia de Optometría
-    role: 'Docente' as const,
+    role: "Docente" as const,
     confirmed: true,
-    subjectCodes: ['M-101', 'M-102', 'M-103', 'M-201'],
+    subjectCodes: ["M-101", "M-102", "M-103", "M-201"],
   },
   {
-    name: 'Luis González Ramírez',
-    email: 'luis.gonzalez@ipn.mx',
-    password: 'password123',
+    name: "Luis González Ramírez",
+    email: "luis.gonzalez@ipn.mx",
+    password: "password123",
     academyId: 1, // Academia de Medicina Tradicional y Herbolaria
-    role: 'Docente' as const,
+    role: "Docente" as const,
     confirmed: true,
-    subjectCodes: ['M-101', 'M-102', 'M-103', 'M-201'],
+    subjectCodes: ["M-101", "M-102", "M-103", "M-201"],
   },
   {
-    name: 'Admin Sistema',
-    email: 'admin@ipn.mx',
-    password: 'admin123',
+    name: "Super Admin",
+    email: "super_admin@ipn.mx",
+    password: "password123",
     academyId: null,
-    role: 'Academia' as const,
+    role: "Administrador" as const,
     confirmed: true,
-    subjectCodes: [], // Admin no tiene materias asignadas
   },
-]
+  {
+    name: "Jefe de Departamento",
+    email: "ramses.llamosas@ipn.mx",
+    password: "password123",
+    academyId: null,
+    role: "Jefe de Departamento" as const,
+    confirmed: true,
+  },
+];

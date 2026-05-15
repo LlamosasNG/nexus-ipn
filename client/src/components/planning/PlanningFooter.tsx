@@ -1,4 +1,12 @@
-export default function PlanningFooter() {
+type PlanningFooterProps = {
+  currentPage: number
+  totalPages?: number
+}
+
+export default function PlanningFooter({
+  currentPage,
+  totalPages = 5,
+}: PlanningFooterProps) {
   return (
     <div className="mt-5 space-y-4">
       {/* Header superior */}
@@ -15,7 +23,9 @@ export default function PlanningFooter() {
       {/* Footer inferior */}
       <div className="flex items-center justify-between text-gray-600 text-sm">
         <div className="font-semibold">FPD-PD-F01-24</div>
-        <div className="font-semibold">Página 1 de 20</div>
+        <div className="font-semibold">
+          Página {currentPage} de {totalPages}
+        </div>
         <div className="font-semibold">Versión 02- Emitido 12/07/2024</div>
       </div>
     </div>

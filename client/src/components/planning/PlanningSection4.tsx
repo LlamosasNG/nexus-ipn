@@ -3,22 +3,29 @@ import { Textarea } from '@/components/ui/textarea'
 import { Plus, Trash2 } from 'lucide-react'
 
 type Referencia = {
-  id: number
+  id: string
+  referenceId?: number
   texto: string
   unidades: boolean[]
-  tipos: { B: boolean; S: boolean; I: boolean; C: boolean }
+  tipos: { S: boolean; I: boolean }
 }
 
 type Props = {
   referencias: Referencia[]
   onAgregar: () => void
-  onEliminar: (id: number) => void
+  onEliminar: (id: string) => void
+  onTextoChange: (id: string, value: string) => void
+  onUnidadToggle: (id: string, index: number) => void
+  onTipoToggle: (id: string, tipo: 'S' | 'I') => void
 }
 
 export function PlanningSection4({
   referencias,
   onAgregar,
   onEliminar,
+  onTextoChange,
+  onUnidadToggle,
+  onTipoToggle,
 }: Props) {
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
@@ -31,37 +38,39 @@ export function PlanningSection4({
 
       {/* Tabla de Referencias */}
       <div className="overflow-x-auto">
-        <table className="w-full border-2 border-gray-400">
+        <table className="w-full border-collapse border border-dashed border-gray-400">
           <thead>
             <tr className="bg-[#7C2855] text-white">
-              <th className="border border-gray-400 px-3 py-3 text-xs font-bold">
+              <th className="border border-dashed border-gray-400 px-3 py-3 text-xs font-bold">
                 4.1 Referencias
                 <br />
                 (Físicas y digitales)
               </th>
-              <th className="border border-gray-400 px-3 py-3 text-xs font-bold w-32">
+              <th className="w-32 border border-dashed border-gray-400 px-3 py-3 text-xs font-bold">
                 4.2 Unidad temática
               </th>
-              <th className="border border-gray-400 px-3 py-3 text-xs font-bold w-40">
+              <th className="w-40 border border-dashed border-gray-400 px-3 py-3 text-xs font-bold">
                 4.3 Tipo¹
               </th>
-              <th className="border border-gray-400 px-2 py-3 w-16"></th>
+              <th className="w-16 border border-dashed border-gray-400 px-2 py-3"></th>
             </tr>
           </thead>
           <tbody>
             {referencias.map((referencia) => (
               <tr key={referencia.id} className="align-top">
                 {/* Columna 4.1: Referencias */}
-                <td className="border border-gray-400 px-3 py-3">
+                <td className="border border-dashed border-gray-400 px-3 py-3">
                   <Textarea
                     rows={3}
-                    className="border-gray-300 text-xs"
+                    className="rounded-none border-dashed border-gray-400 text-xs"
                     placeholder="Ej: Carretero, J; Anasagasti, P de M; García, F; Pérez, F. 2007 Sistemas operativos una visión aplicada McGraw-Hill"
+                    value={referencia.texto}
+                    onChange={(e) => onTextoChange(referencia.id, e.target.value)}
                   />
                 </td>
 
                 {/* Columna 4.2: Unidad temática (checkboxes 1-6) */}
-                <td className="border border-gray-400 px-3 py-3">
+                <td className="border border-dashed border-gray-400 px-3 py-3">
                   <div className="flex flex-col gap-2">
                     <div className="grid grid-cols-6 gap-1 mb-2 text-xs font-semibold text-center">
                       <span>1</span>
@@ -72,28 +81,36 @@ export function PlanningSection4({
                       <span>6</span>
                     </div>
                     <div className="grid grid-cols-6 gap-1">
-                      {[1, 2, 3, 4, 5, 6].map((num) => (
+                      {[1, 2, 3, 4, 5, 6].map((num, index) => (
                         <div key={num} className="flex justify-center">
-                          <input type="checkbox" className="w-4 h-4" />
+                          <input
+                            type="checkbox"
+                            className="w-4 h-4"
+                            checked={referencia.unidades[index] || false}
+                            onChange={() => onUnidadToggle(referencia.id, index)}
+                          />
                         </div>
                       ))}
                     </div>
                   </div>
                 </td>
 
-                {/* Columna 4.3: Tipo (B, S, I, C) */}
-                <td className="border border-gray-400 px-3 py-3">
+                {/* Columna 4.3: Tipo (S, I) */}
+                <td className="border border-dashed border-gray-400 px-3 py-3">
                   <div className="flex flex-col gap-2">
-                    <div className="grid grid-cols-4 gap-2 mb-2 text-xs font-semibold text-center">
-                      <span>B</span>
+                    <div className="grid grid-cols-2 gap-2 mb-2 text-xs font-semibold text-center">
                       <span>S</span>
                       <span>I</span>
-                      <span>C</span>
                     </div>
-                    <div className="grid grid-cols-4 gap-2">
-                      {['B', 'S', 'I', 'C'].map((tipo) => (
+                    <div className="grid grid-cols-2 gap-2">
+                      {(['S', 'I'] as const).map((tipo) => (
                         <div key={tipo} className="flex justify-center">
-                          <input type="checkbox" className="w-4 h-4" />
+                          <input
+                            type="checkbox"
+                            className="w-4 h-4"
+                            checked={referencia.tipos[tipo]}
+                            onChange={() => onTipoToggle(referencia.id, tipo)}
+                          />
                         </div>
                       ))}
                     </div>
@@ -101,7 +118,7 @@ export function PlanningSection4({
                 </td>
 
                 {/* Botón eliminar */}
-                <td className="border border-gray-400 px-2 py-3 text-center">
+                <td className="border border-dashed border-gray-400 px-2 py-3 text-center">
                   <Button
                     type="button"
                     variant="ghost"
@@ -118,12 +135,12 @@ export function PlanningSection4({
 
             {/* Botón agregar referencia */}
             <tr>
-              <td colSpan={4} className="border border-gray-400 px-3 py-2">
+              <td colSpan={4} className="border border-dashed border-gray-400 px-3 py-2">
                 <Button
                   type="button"
                   onClick={onAgregar}
                   variant="outline"
-                  className="w-full border-2 border-dashed border-[#7C2855] text-[#7C2855] hover:bg-[#7C2855] hover:text-white bg-transparent"
+                  className="w-full rounded-none border-2 border-dashed border-[#7C2855] bg-transparent text-[#7C2855] hover:bg-[#7C2855] hover:text-white"
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   Agregar referencia

@@ -21,11 +21,12 @@ import type {
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plus } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, type FieldErrors } from 'react-hook-form'
 import { useParams } from 'react-router'
 import { toast } from 'sonner'
 import { GlobalFields, ThematicUnitCard } from './section3'
 import type { ThematicUnitEditorFormValues } from './section3/ThematicUnitCard'
+import { showOrderedValidationToast } from './utils/validationToast'
 
 function buildDefaultDidacticOrganization(): PlanningDidacticOrganizationFormValues {
   return {
@@ -43,7 +44,25 @@ function parseLines(value: string): string[] {
     .filter(Boolean)
 }
 
-export function PlanningSection3() {
+type PlanningSection3Props = {
+  formId?: string
+  showSaveButton?: boolean
+}
+
+export function PlanningSection3({
+  formId,
+  showSaveButton = true,
+}: PlanningSection3Props) {
+  const fieldOrder = [
+    'learningStrategy',
+    'teachingMethods',
+  ] as const
+
+  const fieldLabels: Record<string, string> = {
+    learningStrategy: '3.3 Estrategia de aprendizaje',
+    teachingMethods: '3.4 Métodos de enseñanza',
+  }
+
   const params = useParams()
   const planningId = params.planningId!
   const queryClient = useQueryClient()
@@ -214,6 +233,16 @@ export function PlanningSection3() {
     mutationDidactic.mutate({ planningId, formData })
   }
 
+  const handleDidacticInvalid = (
+    errors: FieldErrors<PlanningDidacticOrganizationFormValues>
+  ) => {
+    showOrderedValidationToast(errors, {
+      title: 'Completa los campos obligatorios de la sección 3',
+      fieldOrder: [...fieldOrder],
+      fieldLabels,
+    })
+  }
+
   const handleAddUnit = () => {
     if (thematicUnits.length >= 15) {
       toast.error('Máximo 15 unidades temáticas permitidas')
@@ -291,7 +320,10 @@ export function PlanningSection3() {
   if (isLoadingDidactic || isLoadingPlanning || isLoadingUnits) return <LoadingApp />
 
   return (
-    <form onSubmit={handleSubmit(handleDidacticSubmit)}>
+    <form
+      id={formId}
+      onSubmit={handleSubmit(handleDidacticSubmit, handleDidacticInvalid)}
+    >
       <div className="animate-in fade-in slide-in-from-right-4 space-y-6 duration-500">
         <div className="mb-6">
           <h3 className="text-base font-semibold text-gray-700">
@@ -301,11 +333,13 @@ export function PlanningSection3() {
 
         <GlobalFields register={register} />
 
-        <div className="flex justify-end">
-          <Button type="submit" className="bg-[#7C2855] hover:bg-[#7C2855]/80">
-            Guardar 3.1-3.4
-          </Button>
-        </div>
+        {showSaveButton && (
+          <div className="flex justify-end">
+            <Button type="submit" className="bg-[#7C2855] hover:bg-[#7C2855]/80">
+              Guardar 3.1-3.4
+            </Button>
+          </div>
+        )}
 
         <div className="my-6 border-t border-gray-300" />
 

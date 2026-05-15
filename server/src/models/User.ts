@@ -55,9 +55,9 @@ class User extends Model {
   @AllowNull(false)
   @Default('Docente')
   @Column({
-    type: DataType.ENUM('Docente', 'Jefe de Departamento', 'Academia'),
+    type: DataType.ENUM('Docente', 'Jefe de Departamento', 'Academia', 'Administrador'),
   })
-  declare role: 'Docente' | 'Jefe de Departamento' | 'Academia'
+  declare role: 'Docente' | 'Jefe de Departamento' | 'Academia' | 'Administrador'
 
   @Column({
     type: DataType.STRING(6),

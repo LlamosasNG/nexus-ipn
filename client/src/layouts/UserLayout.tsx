@@ -10,9 +10,9 @@ import {
 } from '@/components/ui/navigation-menu'
 import { useAuth } from '@/hooks/useAuth'
 import {
-  AcademicCapIcon,
   ArrowRightStartOnRectangleIcon,
   Bars3Icon,
+  ChartBarIcon,
   DocumentTextIcon,
   FolderIcon,
   HomeIcon,
@@ -40,7 +40,9 @@ export default function UserLayout() {
       </div>
     )
   if (isError) return <Navigate to="/auth/login" />
-  if (data)
+  if (data) {
+    const isDepartmentHead = data.role === 'Jefe de Departamento'
+
     return (
       <div className="min-h-screen flex flex-col bg-gray-50">
         {/* Header Institucional */}
@@ -102,41 +104,70 @@ export default function UserLayout() {
                     </NavigationMenuLink>
                   </NavigationMenuItem>
 
-                  <NavigationMenuItem>
-                    <NavigationMenuLink
-                      asChild
-                      className="flex items-center gap-2 px-4 py-2.5 text-gray-700 hover:text-[#7C2855] hover:bg-[#7C2855]/5 rounded-lg font-medium transition-all duration-200 border-b-2 border-transparent hover:border-[#7C2855]"
-                    >
-                      <Link to="/select-subject">
-                        <DocumentTextIcon className="w-5 h-5" />
-                        <span>Planificaciones</span>
-                      </Link>
-                    </NavigationMenuLink>
-                  </NavigationMenuItem>
+                  {isDepartmentHead ? (
+                    <>
+                      <NavigationMenuItem>
+                        <NavigationMenuLink
+                          asChild
+                          className="flex items-center gap-2 px-4 py-2.5 text-gray-700 hover:text-[#7C2855] hover:bg-[#7C2855]/5 rounded-lg font-medium transition-all duration-200 border-b-2 border-transparent hover:border-[#7C2855]"
+                        >
+                          <Link to="/department-head/dashboard">
+                            <ChartBarIcon className="w-5 h-5" />
+                            <span>Panel</span>
+                          </Link>
+                        </NavigationMenuLink>
+                      </NavigationMenuItem>
+                      <NavigationMenuItem>
+                        <NavigationMenuLink
+                          asChild
+                          className="flex items-center gap-2 px-4 py-2.5 text-gray-700 hover:text-[#7C2855] hover:bg-[#7C2855]/5 rounded-lg font-medium transition-all duration-200 border-b-2 border-transparent hover:border-[#7C2855]"
+                        >
+                          <Link to="/department-head/plannings">
+                            <DocumentTextIcon className="w-5 h-5" />
+                            <span>Planeaciones</span>
+                          </Link>
+                        </NavigationMenuLink>
+                      </NavigationMenuItem>
+                    </>
+                  ) : (
+                    <>
+                      <NavigationMenuItem>
+                        <NavigationMenuLink
+                          asChild
+                          className="flex items-center gap-2 px-4 py-2.5 text-gray-700 hover:text-[#7C2855] hover:bg-[#7C2855]/5 rounded-lg font-medium transition-all duration-200 border-b-2 border-transparent hover:border-[#7C2855]"
+                        >
+                          <Link to="/my-plannings">
+                            <DocumentTextIcon className="w-5 h-5" />
+                            <span>Planificaciones</span>
+                          </Link>
+                        </NavigationMenuLink>
+                      </NavigationMenuItem>
 
-                  <NavigationMenuItem>
-                    <NavigationMenuLink
-                      asChild
-                      className="flex items-center gap-2 px-4 py-2.5 text-gray-700 hover:text-[#7C2855] hover:bg-[#7C2855]/5 rounded-lg font-medium transition-all duration-200 border-b-2 border-transparent hover:border-[#7C2855]"
-                    >
-                      <Link to="/user/recursos">
-                        <FolderIcon className="w-5 h-5" />
-                        <span>Recursos</span>
-                      </Link>
-                    </NavigationMenuLink>
-                  </NavigationMenuItem>
+                      <NavigationMenuItem>
+                        <NavigationMenuLink
+                          asChild
+                          className="flex items-center gap-2 px-4 py-2.5 text-gray-700 hover:text-[#7C2855] hover:bg-[#7C2855]/5 rounded-lg font-medium transition-all duration-200 border-b-2 border-transparent hover:border-[#7C2855]"
+                        >
+                          <Link to="/my-resources">
+                            <FolderIcon className="w-5 h-5" />
+                            <span>Recursos</span>
+                          </Link>
+                        </NavigationMenuLink>
+                      </NavigationMenuItem>
 
-                  <NavigationMenuItem>
-                    <NavigationMenuLink
-                      asChild
-                      className="flex items-center gap-2 px-4 py-2.5 text-gray-700 hover:text-[#7C2855] hover:bg-[#7C2855]/5 rounded-lg font-medium transition-all duration-200 border-b-2 border-transparent hover:border-[#7C2855]"
-                    >
-                      <Link to="/my-profile">
-                        <UserIcon className="w-5 h-5" />
-                        <span>Mi Perfil</span>
-                      </Link>
-                    </NavigationMenuLink>
-                  </NavigationMenuItem>
+                      <NavigationMenuItem>
+                        <NavigationMenuLink
+                          asChild
+                          className="flex items-center gap-2 px-4 py-2.5 text-gray-700 hover:text-[#7C2855] hover:bg-[#7C2855]/5 rounded-lg font-medium transition-all duration-200 border-b-2 border-transparent hover:border-[#7C2855]"
+                        >
+                          <Link to="/my-profile">
+                            <UserIcon className="w-5 h-5" />
+                            <span>Mi Perfil</span>
+                          </Link>
+                        </NavigationMenuLink>
+                      </NavigationMenuItem>
+                    </>
+                  )}
                 </NavigationMenuList>
               </NavigationMenu>
 
@@ -167,37 +198,60 @@ export default function UserLayout() {
             {mobileMenuOpen && (
               <div className="lg:hidden py-4 space-y-2">
                 <Link
-                  to="/user/dashboard"
+                  to="/my-home"
                   onClick={() => setMobileMenuOpen(false)}
                   className="flex items-center gap-3 text-gray-700 hover:text-[#7C2855] hover:bg-[#7C2855]/5 font-medium py-2.5 px-4 rounded-lg transition-all duration-200"
                 >
                   <HomeIcon className="w-5 h-5" />
-                  <span>Dashboard</span>
+                  <span>Inicio</span>
                 </Link>
-                <Link
-                  to="/user/planificaciones"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-3 text-gray-700 hover:text-[#7C2855] hover:bg-[#7C2855]/5 font-medium py-2.5 px-4 rounded-lg transition-all duration-200"
-                >
-                  <DocumentTextIcon className="w-5 h-5" />
-                  <span>Planificaciones</span>
-                </Link>
-                <Link
-                  to="/user/recursos"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-3 text-gray-700 hover:text-[#7C2855] hover:bg-[#7C2855]/5 font-medium py-2.5 px-4 rounded-lg transition-all duration-200"
-                >
-                  <FolderIcon className="w-5 h-5" />
-                  <span>Recursos</span>
-                </Link>
-                <Link
-                  to="/user/materias"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-3 text-gray-700 hover:text-[#7C2855] hover:bg-[#7C2855]/5 font-medium py-2.5 px-4 rounded-lg transition-all duration-200"
-                >
-                  <AcademicCapIcon className="w-5 h-5" />
-                  <span>Materias</span>
-                </Link>
+                {isDepartmentHead ? (
+                  <>
+                    <Link
+                      to="/department-head/dashboard"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center gap-3 text-gray-700 hover:text-[#7C2855] hover:bg-[#7C2855]/5 font-medium py-2.5 px-4 rounded-lg transition-all duration-200"
+                    >
+                      <ChartBarIcon className="w-5 h-5" />
+                      <span>Panel</span>
+                    </Link>
+                    <Link
+                      to="/department-head/plannings"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center gap-3 text-gray-700 hover:text-[#7C2855] hover:bg-[#7C2855]/5 font-medium py-2.5 px-4 rounded-lg transition-all duration-200"
+                    >
+                      <DocumentTextIcon className="w-5 h-5" />
+                      <span>Planeaciones</span>
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      to="/my-plannings"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center gap-3 text-gray-700 hover:text-[#7C2855] hover:bg-[#7C2855]/5 font-medium py-2.5 px-4 rounded-lg transition-all duration-200"
+                    >
+                      <DocumentTextIcon className="w-5 h-5" />
+                      <span>Planificaciones</span>
+                    </Link>
+                    <Link
+                      to="/my-resources"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center gap-3 text-gray-700 hover:text-[#7C2855] hover:bg-[#7C2855]/5 font-medium py-2.5 px-4 rounded-lg transition-all duration-200"
+                    >
+                      <FolderIcon className="w-5 h-5" />
+                      <span>Recursos</span>
+                    </Link>
+                    <Link
+                      to="/my-profile"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center gap-3 text-gray-700 hover:text-[#7C2855] hover:bg-[#7C2855]/5 font-medium py-2.5 px-4 rounded-lg transition-all duration-200"
+                    >
+                      <UserIcon className="w-5 h-5" />
+                      <span>Mi Perfil</span>
+                    </Link>
+                  </>
+                )}
 
                 {/* User Info Mobile */}
                 <div className="border-t border-gray-200 pt-3 mt-3">
@@ -230,4 +284,5 @@ export default function UserLayout() {
         <Toaster position="top-right" visibleToasts={3} />
       </div>
     )
+  }
 }

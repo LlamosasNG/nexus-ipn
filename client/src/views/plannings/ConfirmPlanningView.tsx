@@ -12,11 +12,12 @@ import {
   UserIcon,
 } from '@heroicons/react/24/solid'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { Link, useParams } from 'react-router'
+import { Link, useNavigate, useParams } from 'react-router'
 import { toast } from 'sonner'
 
 export default function ConfirmPlanningView() {
   const { subjectId } = useParams()
+  const navigate = useNavigate()
   const { data: user } = useAuth()
 
   const { data: subjects, isLoading } = useQuery({
@@ -29,7 +30,9 @@ export default function ConfirmPlanningView() {
   const { mutate, isPending } = useMutation({
     mutationFn: createPlanning,
     onSuccess: (data) => {
-      toast.success(data)
+      if (!data) return
+      toast.success(data.message)
+      navigate(`/plannings/${data.data.id}`)
     },
     onError: (error) => {
       toast.error(error.message)

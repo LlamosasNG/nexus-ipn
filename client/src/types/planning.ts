@@ -196,6 +196,31 @@ export type PlanningDidacticOrganization = z.infer<typeof PlanningDidacticOrgani
 export const PlanningDidacticOrganizationFormSchema = PlanningDidacticOrganizationSchema.omit({ id: true, planningId: true })
 export type PlanningDidacticOrganizationFormValues = z.infer<typeof PlanningDidacticOrganizationFormSchema>
 
+export const ReferenceSchema = z.object({
+  id: z.number(),
+  planningId: z.number(),
+  text: z.string(),
+  thematicUnits: z.array(z.boolean()),
+  types: z.object({
+    B: z.boolean(),
+    S: z.boolean(),
+    I: z.boolean(),
+    C: z.boolean(),
+  }),
+  createdAt: z.string().optional(),
+  updatedAt: z.string().optional(),
+})
+export type Reference = z.infer<typeof ReferenceSchema>
+
+export const PlagiarismToolSchema = z.object({
+  id: z.number(),
+  planningId: z.number(),
+  selectedTool: z.enum(['ithenticate', 'turnitin', 'ninguna']),
+  createdAt: z.string().optional(),
+  updatedAt: z.string().optional(),
+})
+export type PlagiarismTool = z.infer<typeof PlagiarismToolSchema>
+
 /** Weekly Hours (3.8) */
 export const WeeklyHoursSchema = z.object({
   classroom: z.coerce.number(),
@@ -239,10 +264,15 @@ export const ThematicUnitSchema = z.object({
   totalSessions: z.coerce.number(),
   evaluationPeriod: z.string(),
   expectedLearnings: z.array(z.string()),
-  precisions: z.string(),
+  precisions: z.string().nullish().transform((value) => value ?? ''),
   sessions: z.array(SessionActivitySchema).optional(),
 })
 export type ThematicUnit = z.infer<typeof ThematicUnitSchema>
 
-export const ThematicUnitFormSchema = ThematicUnitSchema.omit({ id: true, planningId: true, totalSessions: true, sessions: true })
+export const ThematicUnitFormSchema = ThematicUnitSchema.omit({
+  id: true,
+  planningId: true,
+  totalSessions: true,
+  sessions: true,
+})
 export type ThematicUnitFormValues = z.infer<typeof ThematicUnitFormSchema>

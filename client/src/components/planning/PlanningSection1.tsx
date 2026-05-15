@@ -4,9 +4,10 @@ import { useAuth } from '@/hooks/useAuth'
 import type { GeneralDataFormValues, Subject } from '@/types'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useEffect } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, type FieldErrors } from 'react-hook-form'
 import { useParams } from 'react-router'
 import { toast } from 'sonner'
+import { showOrderedValidationToast } from './utils/validationToast'
 import {
   IdentificationRow,
   SemesterModalityRow,
@@ -17,6 +18,8 @@ import {
 
 type PlanningSection1Props = {
   subject?: Subject
+  formId?: string
+  showSaveButton?: boolean
 }
 
 function buildDefaultValues(
@@ -66,7 +69,53 @@ function buildDefaultValues(
   }
 }
 
-export function PlanningSection1({ subject }: PlanningSection1Props) {
+export function PlanningSection1({
+  subject,
+  formId,
+  showSaveButton = true,
+}: PlanningSection1Props) {
+  const fieldOrder = [
+    'academicUnit',
+    'program',
+    'learningUnit',
+    'semester',
+    'areaFormation',
+    'creditsTepic',
+    'creditsSatca',
+    'weeksPerSemester',
+    'hoursPerSemester.theory',
+    'hoursPerSemester.classroom',
+    'hoursPerSemester.practice',
+    'hoursPerSemester.laboratory',
+    'hoursPerSemester.total1',
+    'hoursPerSemester.clinic',
+    'hoursPerSemester.other',
+    'hoursPerSemester.total2',
+    'schoolPeriod',
+    'groups',
+  ] as const
+
+  const fieldLabels: Record<string, string> = {
+    academicUnit: '1.1 Unidad Académica',
+    program: '1.2 Programa académico / Plan de estudios',
+    learningUnit: '1.3 Unidad de aprendizaje',
+    semester: '1.4 Semestre / Nivel',
+    areaFormation: '1.5 Área de formación',
+    creditsTepic: '1.8 Créditos Tepic',
+    creditsSatca: '1.8 Créditos SATCA',
+    weeksPerSemester: '1.10 No. de semanas por semestre',
+    'hoursPerSemester.theory': '1.12 Horas por semestre - Teoría',
+    'hoursPerSemester.classroom': '1.12 Horas por semestre - Aula',
+    'hoursPerSemester.practice': '1.12 Horas por semestre - Práctica',
+    'hoursPerSemester.laboratory': '1.12 Horas por semestre - Laboratorio',
+    'hoursPerSemester.total1': '1.12 Horas por semestre - Total 1',
+    'hoursPerSemester.clinic': '1.12 Horas por semestre - Clínica',
+    'hoursPerSemester.other': '1.12 Horas por semestre - Otro',
+    'hoursPerSemester.total2': '1.12 Horas por semestre - Total 2',
+    schoolPeriod: '1.13 Periodo escolar',
+    groups: '1.14 Grupo(s)',
+  }
+
   const params = useParams()
   const planningId = params.planningId!
   const { data: user } = useAuth()
@@ -113,17 +162,16 @@ export function PlanningSection1({ subject }: PlanningSection1Props) {
     mutate({ planningId, formData })
   }
 
-  const handleInvalid = (errors: Record<string, { message?: string }>) => {
-    const messages = Object.values(errors)
-      .filter(e => e?.message)
-      .map(e => e.message)
-    if (messages.length) {
-      toast.error(messages.join('\n'))
-    }
+  const handleInvalid = (errors: FieldErrors<GeneralDataFormValues>) => {
+    showOrderedValidationToast(errors, {
+      title: 'Completa los campos obligatorios de la sección 1',
+      fieldOrder: [...fieldOrder],
+      fieldLabels,
+    })
   }
 
   return (
-    <form onSubmit={handleSubmit(handleSend, handleInvalid)}>
+    <form id={formId} onSubmit={handleSubmit(handleSend, handleInvalid)}>
       <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
         <div className="mb-6">
           <h3 className="text-base font-semibold text-gray-700">
@@ -155,11 +203,13 @@ export function PlanningSection1({ subject }: PlanningSection1Props) {
         {/* Row 5: 1.15 */}
         <TeacherRow userName={user?.name || ''} />
       </div>
-      <input
-        type="submit"
-        value="Guardar"
-        className="bg-[#7C2855] hover:bg-[#7C2855]/80 w-full p-3  text-white font-black  text-xl cursor-pointer mt-5"
-      />
+      {showSaveButton && (
+        <input
+          type="submit"
+          value="Guardar"
+          className="bg-[#7C2855] hover:bg-[#7C2855]/80 w-full p-3  text-white font-black  text-xl cursor-pointer mt-5"
+        />
+      )}
     </form>
   )
 }

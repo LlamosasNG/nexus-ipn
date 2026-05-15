@@ -1,4 +1,6 @@
 import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import type { ThematicUnit, WeeklyHours } from '@/types'
 import { Trash2 } from 'lucide-react'
 import { useEffect, useMemo } from 'react'
@@ -179,7 +181,10 @@ export function ThematicUnitCard({
         </div>
       </div>
 
-      <ThematicUnitForm register={register} />
+      <ThematicUnitForm
+        register={register}
+        totalSessions={sessionFields.length}
+      />
 
       <SessionTable
         register={register}
@@ -188,6 +193,18 @@ export function ThematicUnitCard({
         onAddSession={() => onAddSession(unit.id)}
         onDeleteSession={(sessionId) => onDeleteSession(unit.id, sessionId)}
       />
+
+      <div>
+        <Label className="block border border-dashed border-gray-400 bg-[#7C2855] px-3 py-2 text-sm font-semibold text-white">
+          3.19 Precisiones de la unidad temática
+        </Label>
+        <Textarea
+          rows={4}
+          className="rounded-none border-dashed border-gray-400"
+          placeholder="Ingrese las precisiones de la unidad temática..."
+          {...register('precisions')}
+        />
+      </div>
 
       <div className="flex justify-end">
         <Button

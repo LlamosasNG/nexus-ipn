@@ -24,8 +24,13 @@ export type NewPasswordForm = Pick<Auth, 'password' | 'password_confirmation'>
 
 export const UserSchema = AuthSchema.pick({ name: true, email: true }).extend({
   id: z.number(),
-  role: z.string(),
-  academy: AcademySchema,
-  subjects: z.array(SubjectRelationSchema),
+  role: z.enum([
+    'Docente',
+    'Jefe de Departamento',
+    'Academia',
+    'Administrador',
+  ]),
+  academy: AcademySchema.nullable(),
+  subjects: z.array(SubjectRelationSchema).default([]),
 })
 export type User = z.infer<typeof UserSchema>

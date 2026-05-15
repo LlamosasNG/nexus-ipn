@@ -16,7 +16,8 @@
     "seed:fresh": "pnpm run db:reset && pnpm run seed",
     "build": "tsc",
     "test": "jest --verbose",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "bcrypt": "6.0.0",

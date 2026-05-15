@@ -28,7 +28,7 @@ export function SessionTable({
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <Label className="bg-[#7C2855] px-3 py-2 text-sm font-semibold text-white">
+        <Label className="border border-dashed border-gray-400 bg-[#7C2855] px-3 py-2 text-sm font-semibold text-white">
           3.12-3.18 Sesiones
         </Label>
         <Button
@@ -47,16 +47,16 @@ export function SessionTable({
         <table className="w-full border-collapse text-xs">
           <thead>
             <tr className="bg-gray-200">
-              <th className="px-2 py-1 text-left font-semibold">No.</th>
-              <th className="px-2 py-1 text-left font-semibold">3.13 Temas y subtemas</th>
+              <th className="border border-dashed border-gray-400 px-2 py-1 text-left font-semibold">No. de </th>
+              <th className="border border-dashed border-gray-400 px-2 py-1 text-left font-semibold">3.13 Temas y subtemas</th>
               <th className="px-2 py-1 text-left font-semibold">
                 3.14 Descripción secuencial
               </th>
-              <th className="px-2 py-1 text-left font-semibold">3.15 Recursos</th>
-              <th className="px-2 py-1 text-left font-semibold">3.16 Evidencias</th>
-              <th className="px-2 py-1 text-center font-semibold">3.17 %</th>
-              <th className="px-2 py-1 text-left font-semibold">3.18 Instrumentos</th>
-              <th className="px-2 py-1"></th>
+              <th className="border border-dashed border-gray-400 px-2 py-1 text-left font-semibold">3.15 Recursos</th>
+              <th className="border border-dashed border-gray-400 px-2 py-1 text-left font-semibold">3.16 Evidencias</th>
+              <th className="border border-dashed border-gray-400 px-2 py-1 text-center font-semibold">3.17 %</th>
+              <th className="border border-dashed border-gray-400 px-2 py-1 text-left font-semibold">3.18 Instrumentos</th>
+              <th className="border border-dashed border-gray-400 px-2 py-1"></th>
             </tr>
           </thead>
           <tbody>
@@ -64,41 +64,47 @@ export function SessionTable({
               <tr key={session.id} className="border-b border-dashed border-gray-400">
                 <td className="px-2 py-1">
                   <Input
-                    className="w-16 border-dashed text-center"
+                    className="w-16 rounded-none border-dashed"
                     {...register(`sessions.${index}.sessionNumber`)}
                   />
                 </td>
                 <td className="px-2 py-1">
                   <Textarea
                     rows={4}
-                    className="border-dashed text-sm"
+                    className="rounded-none border-dashed text-sm"
                     placeholder="1.1 Aspectos básicos del SO"
                     {...register(`sessions.${index}.topics`)}
                   />
                 </td>
                 <td className="px-2 py-1">
-                  <div className="space-y-1 text-sm">
+                  <div className="text-sm">
                     <div>
-                      <Label className="text-xs font-semibold">Inicio:</Label>
+                      <Label className="block border border-dashed border-gray-400 bg-gray-200 px-2 py-1 text-xs font-semibold">
+                        Inicio:
+                      </Label>
                       <Textarea
                         rows={2}
-                        className="border-dashed text-xs"
+                        className="rounded-none border-dashed text-xs"
                         {...register(`sessions.${index}.activityStart`)}
                       />
                     </div>
                     <div>
-                      <Label className="text-xs font-semibold">Desarrollo:</Label>
+                      <Label className="block border border-dashed border-gray-400 bg-gray-200 px-2 py-1 text-xs font-semibold">
+                        Desarrollo:
+                      </Label>
                       <Textarea
                         rows={3}
-                        className="border-dashed text-xs"
+                        className="rounded-none border-dashed text-xs"
                         {...register(`sessions.${index}.activityDevelopment`)}
                       />
                     </div>
                     <div>
-                      <Label className="text-xs font-semibold">Cierre:</Label>
+                      <Label className="block border border-dashed border-gray-400 bg-gray-200 px-2 py-1 text-xs font-semibold">
+                        Cierre:
+                      </Label>
                       <Textarea
                         rows={2}
-                        className="border-dashed text-xs"
+                        className="rounded-none border-dashed text-xs"
                         {...register(`sessions.${index}.activityClosure`)}
                       />
                     </div>
@@ -107,13 +113,13 @@ export function SessionTable({
                 <td className="px-2 py-1">
                   <Textarea
                     rows={2}
-                    className="border-dashed text-sm"
+                    className="rounded-none border-dashed text-sm"
                     {...register(`sessions.${index}.resources`)}
                   />
                 </td>
                 <td className="px-2 py-1">
                   <Input
-                    className="border-dashed text-sm"
+                    className="rounded-none border-dashed text-sm"
                     {...register(`sessions.${index}.evidence`)}
                   />
                 </td>
@@ -123,7 +129,7 @@ export function SessionTable({
                     min={0}
                     max={100}
                     step={1}
-                    className="w-16 border-dashed text-center"
+                    className="w-16 rounded-none border-dashed text-center"
                     {...register(`sessions.${index}.evaluationPercentage`, {
                       valueAsNumber: true,
                     })}
@@ -131,7 +137,7 @@ export function SessionTable({
                 </td>
                 <td className="px-2 py-1">
                   <Input
-                    className="border-dashed text-sm"
+                    className="rounded-none border-dashed text-sm"
                     {...register(`sessions.${index}.evaluationInstrument`)}
                   />
                 </td>

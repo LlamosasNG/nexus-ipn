@@ -7,6 +7,7 @@ import { ThematicUnitController } from '@/controllers/ThematicUnitController'
 import { TransversalAxisController } from '@/controllers/TransversalAxisController'
 import { authenticate } from '@/middleware/auth'
 import { hasAccess, subjectExists } from '@/middleware/subject'
+import { handleInputErrors } from '@/middleware/validation'
 import { Router } from 'express'
 import {
   readLimiter,
@@ -14,6 +15,7 @@ import {
   planningWriteLimiter,
   strictLimiter,
 } from '@/config/limiter'
+import { body, param } from 'express-validator'
 
 const router: Router = Router()
 
@@ -25,6 +27,28 @@ router.param('subjectId', hasAccess)
 router.post('/create/:subjectId', strictLimiter, PlanningController.create)
 router.get('/', readLimiter, PlanningController.getAll)
 router.get('/:planningId', readLimiter, PlanningController.getById)
+router.put(
+  '/:planningId/submit',
+  planningWriteLimiter,
+  param('planningId')
+    .isInt()
+    .withMessage('El ID de la planeación debe ser un número válido'),
+  handleInputErrors,
+  PlanningController.submit
+)
+router.delete(
+  '/:planningId',
+  writeLimiter,
+  param('planningId')
+    .isInt()
+    .withMessage('El ID de la planeación debe ser un número válido'),
+  body('password')
+    .isString()
+    .notEmpty()
+    .withMessage('La contraseña es obligatoria'),
+  handleInputErrors,
+  PlanningController.delete
+)
 
 router.post(
   '/:planningId/general-data',
@@ -135,6 +159,11 @@ router.get(
   '/:planningId/references',
   readLimiter,
   ReferenceController.getAll
+)
+router.put(
+  '/:planningId/references/sync',
+  planningWriteLimiter,
+  ReferenceController.sync
 )
 router.put(
   '/:planningId/references/:id',

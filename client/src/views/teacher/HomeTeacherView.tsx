@@ -122,22 +122,22 @@ export default function HomeTeacherView() {
         </h3>
         <div className="flex flex-wrap justify-center gap-4">
           <Link
-            to=""
+            to="/my-plannings"
             className="px-6 py-3 bg-white hover:bg-gray-50 text-gray-700 hover:text-[#7C2855] font-medium rounded-lg border border-gray-300 hover:border-[#7C2855] transition-all duration-200"
           >
             Ver Mis Planificaciones
           </Link>
           <Link
-            to=""
+            to="/my-resources"
             className="px-6 py-3 bg-white hover:bg-gray-50 text-gray-700 hover:text-[#D4AF37] font-medium rounded-lg border border-gray-300 hover:border-[#D4AF37] transition-all duration-200"
           >
             Ver Mis Recursos
           </Link>
           <Link
-            to=""
+            to="/my-profile"
             className="px-6 py-3 bg-white hover:bg-gray-50 text-gray-700 hover:text-[#7C2855] font-medium rounded-lg border border-gray-300 hover:border-[#7C2855] transition-all duration-200"
           >
-            Mis Materias
+            Mi Perfil
           </Link>
         </div>
       </div>

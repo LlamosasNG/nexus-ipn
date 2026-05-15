@@ -6,142 +6,199 @@ import type { ThematicUnitEditorFormValues } from './ThematicUnitCard'
 
 type ThematicUnitFormProps = {
   register: UseFormRegister<ThematicUnitEditorFormValues>
+  totalSessions: number
 }
 
-export function ThematicUnitForm({ register }: ThematicUnitFormProps) {
+export function ThematicUnitForm({
+  register,
+  totalSessions,
+}: ThematicUnitFormProps) {
   return (
     <div className="space-y-4">
       <div>
-        <Label className="mb-2 block bg-[#7C2855] px-3 py-2 text-sm font-semibold text-white">
+        <Label className="block border border-dashed border-gray-400 bg-[#7C2855] px-3 py-2 text-sm font-semibold text-white">
           3.5 Unidad temática
         </Label>
         <Input
-          className="border-gray-400"
+          className="rounded-none border-dashed border-gray-400"
           placeholder="Ej: Estructura de un sistema operativo"
           {...register('name')}
         />
       </div>
 
-      <div>
-        <Label className="mb-2 block bg-[#7C2855] px-3 py-2 text-sm font-semibold text-white">
-          3.6 Unidad de competencia u objetivo
-        </Label>
-        <Textarea
-          rows={3}
-          className="border-gray-400"
-          placeholder="Identifica los sistemas operativos actuales y emergentes..."
-          {...register('competenceObjective')}
-        />
-      </div>
-
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label className="mb-2 block bg-[#7C2855] px-3 py-2 text-sm font-semibold text-white">
-            3.7 Periodo de desarrollo
+          <Label className="block border border-dashed border-gray-400 bg-[#7C2855] px-3 py-2 text-sm font-semibold text-white">
+            3.6 Unidad de competencia u objetivo
           </Label>
-          <Input
-            className="border-gray-400"
-            placeholder="11 al 23 de febrero del 2025"
-            {...register('developmentPeriod')}
+          <Textarea
+            className="h-[calc(100%-2.5rem)] rounded-none border-dashed border-gray-400"
+            placeholder="Identifica los sistemas operativos actuales y emergentes..."
+            {...register('competenceObjective')}
           />
         </div>
-        <div>
-          <Label className="mb-2 block bg-[#7C2855] px-3 py-2 text-sm font-semibold text-white">
-            3.10 Periodo de registro de evaluación ordinaria
-          </Label>
-          <Input
-            className="border-gray-400"
-            placeholder="21 al 25 de marzo 2025"
-            {...register('evaluationPeriod')}
-          />
-        </div>
-      </div>
 
-      <div className="space-y-2">
-        <Label className="block bg-[#7C2855] px-3 py-2 text-sm font-semibold text-white">
-          3.8 Horas a la semana en cada espacio de mediación docente
-        </Label>
-        <div className="grid grid-cols-6 gap-2">
-          <div>
-            <Label className="text-xs">Aula</Label>
-            <Input
-              type="number"
-              min={0}
-              className="border-gray-400"
-              {...register('weeklyHours.classroom', { valueAsNumber: true })}
-            />
-          </div>
-          <div>
-            <Label className="text-xs">Laboratorio</Label>
-            <Input
-              type="number"
-              min={0}
-              className="border-gray-400"
-              {...register('weeklyHours.laboratory', { valueAsNumber: true })}
-            />
-          </div>
-          <div>
-            <Label className="text-xs">Taller</Label>
-            <Input
-              type="number"
-              min={0}
-              className="border-gray-400"
-              {...register('weeklyHours.workshop', { valueAsNumber: true })}
-            />
-          </div>
-          <div>
-            <Label className="text-xs">Clínica</Label>
-            <Input
-              type="number"
-              min={0}
-              className="border-gray-400"
-              {...register('weeklyHours.clinic', { valueAsNumber: true })}
-            />
-          </div>
-          <div>
-            <Label className="text-xs">Otro</Label>
-            <Input
-              type="number"
-              min={0}
-              className="border-gray-400"
-              {...register('weeklyHours.other', { valueAsNumber: true })}
-            />
-          </div>
-          <div>
-            <Label className="text-xs">Total</Label>
-            <Input
-              type="number"
-              readOnly
-              className="border-gray-400 bg-gray-100"
-              {...register('weeklyHours.total', { valueAsNumber: true })}
-            />
+        <div>
+          <div className="grid grid-cols-2 gap-0">
+            <div className="flex h-full flex-col">
+              <div className="flex-1">
+                <Label className="block border border-dashed border-gray-400 bg-[#7C2855] px-3 py-2 text-sm font-semibold text-white">
+                  3.7 Periodo de desarrollo
+                </Label>
+                <Input
+                  className="h-[calc(100%-2.5rem)] min-h-20 rounded-none border-dashed border-gray-400"
+                  placeholder="11 al 23 de febrero del 2025"
+                  {...register('developmentPeriod')}
+                />
+              </div>
+
+              <div className="flex-1">
+                <Label className="block border border-dashed border-gray-400 bg-[#7C2855] px-3 py-2 text-sm font-semibold text-white">
+                  3.10 Periodo de registro de evaluación ordinaria
+                </Label>
+                <Input
+                  className="h-[calc(100%-2.5rem)] min-h-20 rounded-none border-dashed border-gray-400"
+                  placeholder="21 al 25 de marzo 2025"
+                  {...register('evaluationPeriod')}
+                />
+              </div>
+            </div>
+
+            <div>
+              <table className="w-full border-dashed border-gray-400">
+                <tbody>
+                  <tr>
+                    <td
+                      colSpan={2}
+                      className="bg-[#7C2855] px-3 py-2 text-sm font-semibold text-white border border-dashed border-gray-400 text-center"
+                    >
+                      3.8 Horas a la semana en cada espacio de mediación docente
+                    </td>
+                    <td className="bg-[#7C2855] px-3 py-2 text-sm font-semibold text-white border border-dashed border-gray-400 text-center">
+                      3.9 No. de sesiones totales de la unidad temática
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="bg-gray-400 px-3 text-sm font-semibold border border-dashed border-gray-400">
+                      <Label className="block text-right w-full">Aula</Label>
+                    </td>
+                    <td className="border border-dashed border-gray-400 p-0">
+                      <Input
+                        type="number"
+                        min={0}
+                        className="w-full h-full text-center border-none outline-none rounded-none"
+                        {...register('weeklyHours.classroom', {
+                          valueAsNumber: true,
+                        })}
+                      />
+                    </td>
+                    <td
+                      rowSpan={6}
+                      className="border border-dashed border-gray-400 p-0 align-middle"
+                    >
+                      <Input
+                        value={totalSessions}
+                        readOnly
+                        className="h-full min-h-62 w-full text-center border-none outline-none rounded-none bg-gray-100 cursor-not-allowed font-semibold"
+                      />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="bg-gray-400 px-3 text-sm font-semibold border border-dashed border-gray-400">
+                      <Label className="block text-right w-full">
+                        Laboratorio
+                      </Label>
+                    </td>
+                    <td className="border border-dashed border-gray-400 p-0">
+                      <Input
+                        type="number"
+                        min={0}
+                        className="w-full h-full text-center border-none outline-none rounded-none"
+                        {...register('weeklyHours.laboratory', {
+                          valueAsNumber: true,
+                        })}
+                      />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="bg-gray-400 px-3 text-sm font-semibold border border-dashed border-gray-400">
+                      <Label className="block text-right w-full">Taller</Label>
+                    </td>
+                    <td className="border border-dashed border-gray-400 p-0">
+                      <Input
+                        type="number"
+                        min={0}
+                        className="w-full h-full text-center border-none outline-none rounded-none"
+                        {...register('weeklyHours.workshop', {
+                          valueAsNumber: true,
+                        })}
+                      />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="bg-gray-400 px-3 text-sm font-semibold border border-dashed border-gray-400">
+                      <Label className="block text-right w-full">Clínica</Label>
+                    </td>
+                    <td className="border border-dashed border-gray-400 p-0">
+                      <Input
+                        type="number"
+                        min={0}
+                        className="w-full h-full text-center border-none outline-none rounded-none"
+                        {...register('weeklyHours.clinic', {
+                          valueAsNumber: true,
+                        })}
+                      />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="bg-gray-400 px-3 text-sm font-semibold border border-dashed border-gray-400">
+                      <Label className="block text-right w-full">Otro</Label>
+                    </td>
+                    <td className="border border-dashed border-gray-400 p-0">
+                      <Input
+                        type="number"
+                        min={0}
+                        className="w-full h-full text-center border-none outline-none rounded-none"
+                        {...register('weeklyHours.other', {
+                          valueAsNumber: true,
+                        })}
+                      />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="bg-gray-400 px-3 text-sm font-bold border border-dashed border-gray-400">
+                      <Label className="block text-right w-full">Total</Label>
+                    </td>
+                    <td className="border border-dashed border-gray-400 p-0">
+                      <Input
+                        type="number"
+                        readOnly
+                        className="w-full h-full text-center border-none outline-none rounded-none bg-gray-100 cursor-not-allowed"
+                        {...register('weeklyHours.total', {
+                          valueAsNumber: true,
+                        })}
+                      />
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
 
       <div>
-        <Label className="mb-2 block bg-[#7C2855] px-3 py-2 text-sm font-semibold text-white">
+        <Label className="mt-10 block border border-dashed border-gray-400 bg-[#7C2855] px-3 py-2 text-sm font-semibold text-white">
           3.11 Aprendizajes esperados
         </Label>
         <Textarea
           rows={3}
-          className="border-gray-400"
+          className="rounded-none border-dashed border-gray-400"
           placeholder="Escribe cada aprendizaje esperado en una línea"
           {...register('expectedLearnings')}
         />
       </div>
 
-      <div>
-        <Label className="mb-2 block bg-[#7C2855] px-3 py-2 text-sm font-semibold text-white">
-          3.19 Precisiones de la unidad temática
-        </Label>
-        <Textarea
-          rows={4}
-          className="border-gray-400"
-          placeholder="Ingrese las precisiones de la unidad temática..."
-          {...register('precisions')}
-        />
-      </div>
     </div>
   )
 }

@@ -1,0 +1,28 @@
+
+---
+
+# 2. `.codexignore`
+
+CRÍTICO.
+
+Esto probablemente te ahorrará más tokens que cualquier otra cosa.
+
+## `/.codexignore`
+
+```gitignore id="kqto66"
+**/node_modules
+**/dist
+**/coverage
+**/.git
+**/*.log
+**/.DS_Store
+
+client/dist
+server/dist
+
+pnpm-lock.yaml
+
+*.png
+*.svg
+*.jpg
+*.jpeg

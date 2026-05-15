@@ -1,9 +1,9 @@
+import { getMyDigitalResources } from '@/api/DigitalResourceAPI'
 import { getPlannings } from '@/api/PlanningAPI'
 import { useAuth } from '@/hooks/useAuth'
-import type { PlanningItem } from '@/types'
+import type { DigitalBookResource, PlanningItem } from '@/types'
 import {
   AcademicCapIcon,
-  BookOpenIcon,
   BuildingLibraryIcon,
   CalendarDaysIcon,
   DocumentTextIcon,
@@ -23,7 +23,14 @@ export default function ProfileTeacherView() {
     refetchOnWindowFocus: false,
   })
 
+  const { data: digitalResourcesData, isLoading: digitalResourcesLoading } = useQuery({
+    queryKey: ['digital-resources'],
+    queryFn: getMyDigitalResources,
+    refetchOnWindowFocus: false,
+  })
+
   const plannings: PlanningItem[] = planningsData || []
+  const digitalResources: DigitalBookResource[] = digitalResourcesData || []
 
   const statusColors: Record<string, string> = {
     Borrador: 'bg-yellow-100 text-yellow-800',
@@ -42,22 +49,13 @@ export default function ProfileTeacherView() {
     })
   }
 
-  const recursos = [
-    {
-      id: 1,
-      title: 'Presentación Tema 1',
-      subject: 'Bases doctrinarias de la Homeopatía',
-      type: 'Presentación',
-      createdAt: '2026-03-15',
-    },
-    {
-      id: 2,
-      title: 'Guía de Laboratorio',
-      subject: 'Farmacología Homeopática I',
-      type: 'Documento',
-      createdAt: '2026-03-10',
-    },
-  ]
+  const getResourceTitle = (resource: DigitalBookResource) =>
+    resource.identification?.title || 'Libro digital sin título'
+
+  const getResourceTypeLabel = (resourceType: DigitalBookResource['resourceType']) => {
+    if (resourceType === 'digital-book') return 'Libro Digital'
+    return resourceType
+  }
 
   if (!user) return null
 
@@ -75,7 +73,7 @@ export default function ProfileTeacherView() {
             {/* Info Principal */}
             <div className="text-center sm:text-left text-white flex-1">
               <h1 className="text-3xl sm:text-4xl font-bold">{user.name}</h1>
-              <p className="text-white/80 mt-1 text-lg">Docente</p>
+              <p className="text-white/80 mt-1 text-lg">{user.role}</p>
               <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 mt-3">
                 <span className="inline-flex items-center gap-1.5 text-white/70 text-sm">
                   <EnvelopeIcon className="w-4 h-4" />
@@ -83,7 +81,7 @@ export default function ProfileTeacherView() {
                 </span>
                 <span className="inline-flex items-center gap-1.5 text-white/70 text-sm">
                   <BuildingLibraryIcon className="w-4 h-4" />
-                  {user.academy.name}
+                  {user.academy?.name || 'Sin academia asignada'}
                 </span>
               </div>
             </div>
@@ -98,7 +96,10 @@ export default function ProfileTeacherView() {
       </div>
 
       {/* Datos Institucionales */}
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+      <div
+        id="plannings"
+        className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden"
+      >
         <div className="px-6 py-4 border-b border-gray-200 flex items-center gap-3">
           <BuildingLibraryIcon className="w-6 h-6 text-[#7C2855]" />
           <h2 className="text-xl font-bold text-gray-900">
@@ -136,10 +137,10 @@ export default function ProfileTeacherView() {
               <div>
                 <p className="text-sm font-medium text-gray-500">Academia</p>
                 <p className="text-base font-semibold text-gray-900">
-                  {user.academy.name}
+                  {user.academy?.name || 'Sin academia asignada'}
                 </p>
                 <p className="text-sm text-gray-500">
-                  {user.academy.description}
+                  {user.academy?.description || 'Sin descripción disponible'}
                 </p>
               </div>
             </div>
@@ -171,7 +172,10 @@ export default function ProfileTeacherView() {
       </div>
 
       {/* Planificaciones Didácticas */}
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+      <div
+        id="resources"
+        className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden"
+      >
         <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <DocumentTextIcon className="w-6 h-6 text-[#7C2855]" />
@@ -213,15 +217,12 @@ export default function ProfileTeacherView() {
                   <h3 className="font-semibold text-gray-900 mb-1 group-hover:text-[#7C2855] transition-colors">
                     {plan.subject?.name || 'Materia'}
                   </h3>
-                  <div className="flex items-center gap-4 text-sm text-gray-500">
-                    <span className="inline-flex items-center gap-1">
-                      <CalendarDaysIcon className="w-3.5 h-3.5" />
-                      {plan.period}
-                    </span>
-                    <span className="inline-flex items-center gap-1">
-                      <BookOpenIcon className="w-3.5 h-3.5" />
-                      Actualizada: {formatDate(plan.updatedAt)}
-                    </span>
+                  <p className="text-sm text-gray-600 mb-2">
+                    Periodo: {plan.period}
+                  </p>
+                  <div className="flex items-center gap-1 text-sm text-gray-500">
+                    <CalendarDaysIcon className="w-3.5 h-3.5" />
+                    Actualizada: {formatDate(plan.updatedAt)}
                   </div>
                 </Link>
               ))}
@@ -254,11 +255,16 @@ export default function ProfileTeacherView() {
           </Link>
         </div>
         <div className="p-6">
-          {recursos.length > 0 ? (
+          {digitalResourcesLoading ? (
+            <div className="text-center py-8">
+              <div className="animate-spin w-8 h-8 border-4 border-[#D4AF37] border-t-transparent rounded-full mx-auto" />
+              <p className="text-gray-500 mt-2">Cargando recursos...</p>
+            </div>
+          ) : digitalResources.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {recursos.map((recurso) => (
+              {digitalResources.map((resource) => (
                 <div
-                  key={recurso.id}
+                  key={resource.id}
                   className="group p-5 border border-gray-200 rounded-xl hover:border-[#D4AF37] hover:shadow-md transition-all duration-300"
                 >
                   <div className="flex items-start justify-between mb-3">
@@ -266,18 +272,18 @@ export default function ProfileTeacherView() {
                       <FolderIcon className="w-5 h-5 text-[#D4AF37]" />
                     </div>
                     <span className="px-2.5 py-1 bg-purple-100 text-purple-800 text-xs font-semibold rounded-full">
-                      {recurso.type}
+                      {getResourceTypeLabel(resource.resourceType)}
                     </span>
                   </div>
                   <h3 className="font-semibold text-gray-900 mb-1 group-hover:text-[#D4AF37] transition-colors">
-                    {recurso.title}
+                    {getResourceTitle(resource)}
                   </h3>
                   <p className="text-sm text-gray-600 mb-2">
-                    {recurso.subject}
+                    {resource.subject?.name || 'Materia no disponible'}
                   </p>
                   <div className="flex items-center gap-1 text-sm text-gray-500">
                     <CalendarDaysIcon className="w-3.5 h-3.5" />
-                    Creado: {recurso.createdAt}
+                    Actualizado: {formatDate(resource.updatedAt)}
                   </div>
                 </div>
               ))}
