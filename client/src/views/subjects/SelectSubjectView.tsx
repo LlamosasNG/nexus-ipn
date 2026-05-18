@@ -43,7 +43,14 @@ export default function SelectSubjectView() {
 
   // Filtrar materias que ya tienen planificación creada
   const subjects =
-    type === 'plannings' ? data?.filter((s) => s.plannings.length === 0) : data
+    type === 'plannings'
+      ? data?.filter(
+          (subject) =>
+            !subject.plannings.some(
+              (planning) => planning.period === subject.UserSubject.period
+            )
+        )
+      : data
 
   if (isLoading) {
     return (

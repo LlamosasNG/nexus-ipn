@@ -3,6 +3,8 @@
    ───────────────────────────────────────────────────────────── */
 
 export interface IdentificationFormValues {
+  coverImage: string
+  interactiveDescription: string
   title: string
   thematicUnits: string[]
 }
@@ -124,7 +126,7 @@ export interface DigitalBookResource {
   id: number
   userId: number
   subjectId: number
-  resourceType: 'digital-book'
+  resourceType: DigitalResourceType
   subject: {
     id: number
     name: string
@@ -154,3 +156,4 @@ export interface DigitalBookPayload {
   credits?: CreditsSectionFormValues
 }
 
+export type DigitalResourceType = 'digital-book' | 'interactive-digital-book'

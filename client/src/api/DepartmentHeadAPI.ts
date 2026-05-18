@@ -35,11 +35,18 @@ type DepartmentHeadPlanningListParams = {
   sortOrder?: 'asc' | 'desc'
 }
 
+const cleanPlanningListParams = (params: DepartmentHeadPlanningListParams) =>
+  Object.fromEntries(
+    Object.entries(params).filter(([, value]) => value !== '')
+  ) as DepartmentHeadPlanningListParams
+
 export async function getDepartmentHeadPlannings(
   params: DepartmentHeadPlanningListParams
 ) {
   try {
-    const { data } = await api.get('/department-head/plannings', { params })
+    const { data } = await api.get('/department-head/plannings', {
+      params: cleanPlanningListParams(params),
+    })
     const response = DepartmentHeadPlanningListResponseSchema.safeParse(data)
 
     if (response.success) {

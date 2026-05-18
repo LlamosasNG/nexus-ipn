@@ -1,6 +1,8 @@
-export type DigitalResourceType = 'digital-book'
+export type DigitalResourceType = 'digital-book' | 'interactive-digital-book'
 
 export interface IdentificationSection {
+  coverImage: string
+  interactiveDescription: string
   title: string
   thematicUnits: string[]
 }

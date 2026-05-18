@@ -21,19 +21,13 @@ export class DepartmentHeadDashboardController {
   static getMetrics = async (req: Request, res: Response) => {
     try {
       const academyId = req.user.academyId
-
-      if (!academyId) {
-        return res.status(400).json({
-          error: 'El usuario no tiene una academia asignada',
-        })
-      }
+      const teacherWhere = academyId
+        ? { academyId, role: 'Docente' }
+        : { role: 'Docente' }
 
       const [teachers, plannings, digitalResources] = await Promise.all([
         User.findAll({
-          where: {
-            academyId,
-            role: 'Docente',
-          },
+          where: teacherWhere,
           attributes: ['id', 'name', 'email', 'createdAt', 'updatedAt'],
           order: [['name', 'ASC']],
         }),
@@ -41,12 +35,12 @@ export class DepartmentHeadDashboardController {
           include: [
             {
               model: Subject,
-              where: { academyId },
               attributes: ['id', 'name', 'code'],
             },
             {
               model: User,
               attributes: ['id', 'name', 'email'],
+              where: teacherWhere,
             },
           ],
           order: [['updatedAt', 'DESC']],
@@ -55,12 +49,12 @@ export class DepartmentHeadDashboardController {
           include: [
             {
               model: Subject,
-              where: { academyId },
               attributes: ['id', 'name', 'code'],
             },
             {
               model: User,
               attributes: ['id', 'name', 'email'],
+              where: teacherWhere,
             },
           ],
           order: [['updatedAt', 'DESC']],
@@ -77,12 +71,27 @@ export class DepartmentHeadDashboardController {
         participatingTeacherIds.add(resource.userId)
       }
 
+      const draftPlannings = plannings.filter(
+        (planning) => planning.status === PlanningStatus.DRAFT
+      )
+      const latestDraftPlanningByTeacherId = new Map<number, Planning>()
+
+      for (const planning of draftPlannings) {
+        if (!latestDraftPlanningByTeacherId.has(planning.userId)) {
+          latestDraftPlanningByTeacherId.set(planning.userId, planning)
+        }
+      }
+
+      const teacherIds = new Set(teachers.map((teacher) => teacher.id))
+      const activeTeacherCount = Array.from(participatingTeacherIds).filter((id) =>
+        teacherIds.has(id)
+      ).length
       const teacherParticipation =
         teachers.length === 0
           ? 0
           : Number(
               (
-                (participatingTeacherIds.size / teachers.length) *
+                (activeTeacherCount / teachers.length) *
                 100
               ).toFixed(1)
             )
@@ -90,6 +99,25 @@ export class DepartmentHeadDashboardController {
       const approvedDigitalResources = digitalResources.filter(isResourceComplete)
 
       const recentActivity = [
+        ...teachers.map((teacher) => {
+          const draftPlanning = latestDraftPlanningByTeacherId.get(teacher.id)
+
+          return {
+            id: `teacher-${teacher.id}`,
+            type: 'teacher' as const,
+            title: teacher.name,
+            subjectName: draftPlanning
+              ? draftPlanning.subject?.name || 'Materia no disponible'
+              : 'Actividad docente en el sistema',
+            teacherName: teacher.email,
+            status: draftPlanning
+              ? 'Planeación en borrador'
+              : participatingTeacherIds.has(teacher.id)
+                ? 'Con actividad académica'
+                : 'Registrado sin actividad',
+            updatedAt: draftPlanning?.updatedAt || teacher.updatedAt,
+          }
+        }),
         ...plannings.map((planning) => ({
           id: `planning-${planning.id}`,
           type: 'planning' as const,
@@ -127,7 +155,10 @@ export class DepartmentHeadDashboardController {
           : null,
         metrics: {
           totalTeachers: teachers.length,
+          activeTeachers: activeTeacherCount,
+          teachersWithDraftPlannings: latestDraftPlanningByTeacherId.size,
           totalPlannings: plannings.length,
+          draftPlannings: draftPlannings.length,
           pendingPlannings: plannings.filter(
             (planning) => planning.status === PlanningStatus.SENT
           ).length,

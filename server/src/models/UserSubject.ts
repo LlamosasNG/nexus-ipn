@@ -9,6 +9,7 @@ import {
 } from 'sequelize-typescript'
 import Subject from './Subject'
 import User from './User'
+import { normalizeAcademicPeriod } from '@/utils/academicPeriod'
 
 @Table({
   tableName: 'user_subjects',
@@ -30,6 +31,9 @@ class UserSubject extends Model {
 
   @Column({
     type: DataType.STRING(20),
+    set(value: string) {
+      this.setDataValue('period', normalizeAcademicPeriod(value))
+    },
   })
   declare period: string
 

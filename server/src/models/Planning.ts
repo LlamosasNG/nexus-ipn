@@ -18,6 +18,7 @@ import Subject from './Subject'
 import ThematicUnit from './ThematicUnit'
 import TransversalAxis from './TransversalAxis'
 import User from './User'
+import { normalizeAcademicPeriod } from '@/utils/academicPeriod'
 
 export enum PlanningStatus {
   DRAFT = 'Borrador',
@@ -53,6 +54,9 @@ export default class Planning extends Model {
   @AllowNull(false)
   @Column({
     type: DataType.STRING,
+    set(value: string) {
+      this.setDataValue('period', normalizeAcademicPeriod(value))
+    },
   })
   declare period: string
 

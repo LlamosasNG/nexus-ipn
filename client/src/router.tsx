@@ -15,6 +15,7 @@ import RequestNewCodeView from './views/auth/RequestNewCodeView'
 import DashboardView from './views/DashboardView'
 import DepartmentHeadDashboardView from './views/departmentHead/DepartmentHeadDashboardView'
 import DepartmentHeadPlanningsView from './views/departmentHead/DepartmentHeadPlanningsView'
+import DepartmentHeadPlanningViewerView from './views/departmentHead/DepartmentHeadPlanningViewerView'
 import ConfirmPlanningView from './views/plannings/ConfirmPlanningView'
 import CreatePlanningView from './views/plannings/CreatePlanningView'
 import CreateDigitalBookView from './views/resources/CreateDigitalBookView'
@@ -56,6 +57,10 @@ export default function Router() {
           <Route
             path="/department-head/plannings"
             element={<DepartmentHeadPlanningsView />}
+          />
+          <Route
+            path="/department-head/plannings/:planningId"
+            element={<DepartmentHeadPlanningViewerView />}
           />
           <Route path="/my-plannings" element={<MyPlanningsView />} />
           <Route path="/my-resources" element={<MyResourcesView />} />

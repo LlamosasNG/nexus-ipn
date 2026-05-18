@@ -58,6 +58,9 @@ export default function MyPlanningsView() {
       setPlanningToDelete(null)
       setPassword('')
       queryClient.invalidateQueries({ queryKey: ['plannings'] })
+      queryClient.invalidateQueries({ queryKey: ['user-subjects'] })
+      queryClient.invalidateQueries({ queryKey: ['department-head-dashboard'] })
+      queryClient.invalidateQueries({ queryKey: ['department-head-plannings'] })
     },
     onError: (error) => {
       toast.error(error.message)

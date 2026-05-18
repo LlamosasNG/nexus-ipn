@@ -175,6 +175,12 @@ export default function CreatePlanningView() {
       await queryClient.invalidateQueries({
         queryKey: ['plannings'],
       })
+      await queryClient.invalidateQueries({
+        queryKey: ['department-head-dashboard'],
+      })
+      await queryClient.invalidateQueries({
+        queryKey: ['department-head-plannings'],
+      })
 
       setIsSubmitDialogOpen(false)
       toast.success(response?.message || 'Planeación enviada correctamente')

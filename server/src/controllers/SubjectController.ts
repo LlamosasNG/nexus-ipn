@@ -3,6 +3,7 @@ import Planning from '@/models/Planning'
 import Subject from '@/models/Subject'
 import User from '@/models/User'
 import UserSubject from '@/models/UserSubject'
+import { normalizeAcademicPeriod } from '@/utils/academicPeriod'
 import { Request, Response } from 'express'
 
 export class SubjectController {
@@ -54,10 +55,11 @@ export class SubjectController {
       })
 
       // Crear nuevas asignaciones
+      const academicPeriod = normalizeAcademicPeriod(period)
       const assignments = subjectIds.map((subjectId: number) => ({
         userId,
         subjectId,
-        period: period || new Date().getFullYear().toString(),
+        period: academicPeriod,
         active: true,
       }))
 
@@ -108,7 +110,7 @@ export class SubjectController {
               {
                 model: Planning,
                 where: { userId: req.user.id },
-                attributes: ['id', 'status'],
+                attributes: ['id', 'period', 'status'],
                 required: false,
               },
             ],

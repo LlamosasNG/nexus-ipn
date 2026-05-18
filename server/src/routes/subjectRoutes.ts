@@ -20,9 +20,9 @@ router.post(
     .isInt()
     .withMessage('Los IDs de las materias deben ser números válidos'),
   body('period')
-    .optional()
-    .isString()
-    .withMessage('El período debe ser una cadena de texto'),
+    .optional({ checkFalsy: true })
+    .matches(/^\d{4}-[12]$/)
+    .withMessage('El período debe tener formato año-semestre, por ejemplo 2026-2'),
   handleInputErrors,
   SubjectController.assign
 )

@@ -1,5 +1,11 @@
 import { Request, Response } from 'express'
 
+jest.mock('@/config/db', () => ({
+  db: {
+    transaction: jest.fn(),
+  },
+}))
+
 jest.mock('@/models/Planning', () => {
   const PlanningStatus = {
     DRAFT: 'Borrador',
@@ -70,7 +76,7 @@ describe('PlanningController', () => {
 
       expect(res.status).toHaveBeenCalledWith(400)
       expect(res.json).toHaveBeenCalledWith({
-        error: 'Ya tienes una planeación para esta materia',
+        error: 'Ya tienes una planeación para esta materia y período',
       })
     })
 
@@ -107,11 +113,14 @@ describe('PlanningController', () => {
         academy: { name: 'Homeopatía' },
       }
       mockSubject.findByPk.mockResolvedValue(fakeSubject as any)
-      mockPlanning.create.mockResolvedValue({ id: 10 } as any)
+      mockPlanning.create.mockResolvedValue({ id: 10, status: 'Borrador' } as any)
       mockGeneralData.create.mockResolvedValue({} as any)
 
       await PlanningController.create(req as Request, res as Response)
 
+      expect(mockPlanning.findOne).toHaveBeenCalledWith({
+        where: { userId: 1, subjectId: '5', period: '2026-1' },
+      })
       expect(mockPlanning.create).toHaveBeenCalledWith(
         expect.objectContaining({
           userId: 1,
@@ -120,9 +129,14 @@ describe('PlanningController', () => {
           status: 'Borrador',
         })
       )
-      expect(mockGeneralData.create).toHaveBeenCalled()
       expect(res.status).toHaveBeenCalledWith(201)
-      expect(res.json).toHaveBeenCalledWith('Planeación creada correctamente')
+      expect(res.json).toHaveBeenCalledWith({
+        message: 'Planeación creada correctamente',
+        data: {
+          id: 10,
+          status: 'Borrador',
+        },
+      })
     })
   })
 

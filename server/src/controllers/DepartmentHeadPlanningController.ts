@@ -1,8 +1,10 @@
 import Academy from '@/models/Academy'
 import GeneralData from '@/models/GeneralData'
 import Planning, { PlanningStatus } from '@/models/Planning'
+import PlanningDidacticOrganization from '@/models/PlanningDidacticOrganization'
 import PlagiarismTool from '@/models/PlagiarismTool'
 import Reference from '@/models/Reference'
+import SessionActivity from '@/models/SessionActivity'
 import Subject from '@/models/Subject'
 import ThematicUnit from '@/models/ThematicUnit'
 import TransversalAxis from '@/models/TransversalAxis'
@@ -146,8 +148,11 @@ export class DepartmentHeadPlanningController {
         ]
       }
 
-      const subjectWhere: Record<string, unknown> = { academyId }
-      const teacherWhere: Record<string, unknown> = { role: 'Docente' }
+      const subjectWhere: Record<string, unknown> = {}
+      const teacherWhere: Record<string, unknown> = {
+        academyId,
+        role: 'Docente',
+      }
 
       if (subjectId) {
         subjectWhere.id = subjectId
@@ -174,7 +179,6 @@ export class DepartmentHeadPlanningController {
               },
             ],
             distinct: true,
-            col: 'Planning.id',
             subQuery: false,
             order: getSortOrder(sortBy, sortOrder),
             limit: pageSize,
@@ -199,9 +203,16 @@ export class DepartmentHeadPlanningController {
           Planning.findAll({
             include: [
               {
+                model: User,
+                attributes: [],
+                where: {
+                  academyId,
+                  role: 'Docente',
+                },
+              },
+              {
                 model: Subject,
                 attributes: [],
-                where: { academyId },
               },
             ],
             attributes: ['period'],
@@ -314,7 +325,6 @@ export class DepartmentHeadPlanningController {
               'areaFormation',
               'modality',
             ],
-            where: { academyId },
             include: [
               {
                 model: Academy,
@@ -329,23 +339,59 @@ export class DepartmentHeadPlanningController {
         return res.status(404).json({ error: 'Planeación no encontrada' })
       }
 
-      const [generalData, transversalAxis, thematicUnitsCount, referencesCount, plagiarismTool] =
+      if (planning.status !== PlanningStatus.SENT) {
+        return res.status(403).json({
+          error: 'Solo puedes visualizar planeaciones enviadas por el docente',
+        })
+      }
+
+      const [generalData, transversalAxis, didacticOrganization, thematicUnits, references, plagiarismTool] =
         await Promise.all([
           GeneralData.findOne({
-            where: { planningId },
-            attributes: ['id'],
+            where: { planningId: planning.id },
           }),
           TransversalAxis.findOne({
-            where: { planningId },
-            attributes: ['id'],
+            where: { planningId: planning.id },
           }),
-          ThematicUnit.count({ where: { planningId } }),
-          Reference.count({ where: { planningId } }),
+          PlanningDidacticOrganization.findOne({
+            where: { planningId: planning.id },
+          }),
+          ThematicUnit.findAll({
+            where: { planningId: planning.id },
+            order: [['order', 'ASC']],
+          }),
+          Reference.findAll({
+            where: { planningId: planning.id },
+            order: [['createdAt', 'ASC']],
+          }),
           PlagiarismTool.findOne({
-            where: { planningId },
-            attributes: ['id', 'selectedTool'],
+            where: { planningId: planning.id },
           }),
         ])
+
+      const thematicUnitIds = thematicUnits.map((unit) => unit.id)
+      const sessions =
+        thematicUnitIds.length > 0
+          ? await SessionActivity.findAll({
+              where: {
+                thematicUnitId: {
+                  [Op.in]: thematicUnitIds,
+                },
+              },
+              order: [['order', 'ASC']],
+            })
+          : []
+
+      const thematicUnitsWithSessions = thematicUnits.map((unit) => {
+        const unitData = unit.toJSON()
+
+        return {
+          ...unitData,
+          sessions: sessions
+            .filter((session) => session.thematicUnitId === unit.id)
+            .map((session) => session.toJSON()),
+        }
+      })
 
       res.json({
         id: planning.id,
@@ -379,9 +425,17 @@ export class DepartmentHeadPlanningController {
         summary: {
           hasGeneralData: Boolean(generalData),
           hasTransversalAxis: Boolean(transversalAxis),
-          thematicUnitsCount,
-          referencesCount,
+          thematicUnitsCount: thematicUnitsWithSessions.length,
+          referencesCount: references.length,
           plagiarismTool: plagiarismTool?.selectedTool || null,
+        },
+        submittedContent: {
+          generalData,
+          transversalAxis,
+          didacticOrganization,
+          thematicUnits: thematicUnitsWithSessions,
+          references,
+          plagiarismTool,
         },
       })
     } catch (error) {

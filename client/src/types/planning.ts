@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+export const AcademicPeriodSchema = z.string().regex(/^\d{4}-[12]$/)
+
 /** Planning Status */
 export const PlanningStatusSchema = z.enum([
   'Borrador',
@@ -12,7 +14,7 @@ export type PlanningStatus = z.infer<typeof PlanningStatusSchema>
 
 /** Planning Creation */
 export const CreatePlanningSchema = z.object({
-  period: z.string(),
+  period: AcademicPeriodSchema,
 })
 export type CreatePlanningData = z.infer<typeof CreatePlanningSchema>
 
@@ -20,6 +22,7 @@ export type CreatePlanningData = z.infer<typeof CreatePlanningSchema>
 export const PlanningValidationSchema = z.array(
   z.object({
     id: z.number(),
+    period: AcademicPeriodSchema,
     status: PlanningStatusSchema,
   })
 )
@@ -29,7 +32,7 @@ export const PlanningSchema = z.object({
   id: z.number(),
   userId: z.number(),
   subjectId: z.number(),
-  period: z.string(),
+  period: AcademicPeriodSchema,
   status: PlanningStatusSchema,
   submissionDate: z.string().nullable(),
   feedback: z.string().nullable(),
@@ -48,7 +51,7 @@ export const PlanningSubjectDetailsSchema = z.object({
   id: z.number(),
   userId: z.number(),
   subjectId: z.number(),
-  period: z.string(),
+  period: AcademicPeriodSchema,
   status: PlanningStatusSchema,
   submissionDate: z.string().nullable(),
   feedback: z.string().nullable(),

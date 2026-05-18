@@ -1,6 +1,7 @@
 import Subject from '@/models/Subject'
 import User from '@/models/User'
 import UserSubject from '@/models/UserSubject'
+import { getCurrentAcademicPeriod } from '@/utils/academicPeriod'
 import { hashPassword } from '@/utils/auth'
 import colors from 'colors'
 import { users } from '../data/users'
@@ -26,22 +27,38 @@ export async function seedUsers() {
 
       // Get all subjects to map codes to IDs
       const subjects = await Subject.findAll()
-      const subjectMap = new Map(subjects.map((s) => [s.code, s.id]))
+      const subjectMap = new Map(
+        subjects.map((subject) => [
+          subject.code,
+          {
+            id: subject.id,
+            academyId: subject.academyId,
+          },
+        ])
+      )
 
       // Assign subjects to users
       const userSubjects = []
+      const academicPeriod = getCurrentAcademicPeriod()
       for (let i = 0; i < users.length; i++) {
         const user = users[i]
         const createdUser = createdUsers[i]
 
         if (user.subjectCodes && user.subjectCodes.length > 0) {
           for (const code of user.subjectCodes) {
-            const subjectId = subjectMap.get(code)
-            if (subjectId) {
+            const subject = subjectMap.get(code)
+
+            if (subject && subject.academyId !== user.academyId) {
+              throw new Error(
+                `La materia ${code} no pertenece a la academia del usuario ${user.email}`
+              )
+            }
+
+            if (subject) {
               userSubjects.push({
                 userId: createdUser.id,
-                subjectId,
-                period: new Date().getFullYear().toString(),
+                subjectId: subject.id,
+                period: academicPeriod,
                 active: true,
               })
             }

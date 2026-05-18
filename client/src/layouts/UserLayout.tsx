@@ -16,8 +16,8 @@ import {
   DocumentTextIcon,
   FolderIcon,
   HomeIcon,
-  XMarkIcon,
   UserIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/solid'
 import { useState } from 'react'
 import { Link, Navigate, Outlet, useNavigate } from 'react-router'
@@ -106,17 +106,6 @@ export default function UserLayout() {
 
                   {isDepartmentHead ? (
                     <>
-                      <NavigationMenuItem>
-                        <NavigationMenuLink
-                          asChild
-                          className="flex items-center gap-2 px-4 py-2.5 text-gray-700 hover:text-[#7C2855] hover:bg-[#7C2855]/5 rounded-lg font-medium transition-all duration-200 border-b-2 border-transparent hover:border-[#7C2855]"
-                        >
-                          <Link to="/department-head/dashboard">
-                            <ChartBarIcon className="w-5 h-5" />
-                            <span>Panel</span>
-                          </Link>
-                        </NavigationMenuLink>
-                      </NavigationMenuItem>
                       <NavigationMenuItem>
                         <NavigationMenuLink
                           asChild

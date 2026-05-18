@@ -1,9 +1,9 @@
-import { PlanningValidationSchema } from '@/types/planning'
+import { AcademicPeriodSchema, PlanningValidationSchema } from '@/types/planning'
 import { z } from 'zod'
 
 /** Subjects */
 export const UserSubjectSchema = z.object({
-  period: z.string(),
+  period: AcademicPeriodSchema,
   active: z.boolean(),
 })
 

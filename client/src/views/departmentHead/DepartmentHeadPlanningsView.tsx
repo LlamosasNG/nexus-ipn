@@ -1,17 +1,6 @@
-import {
-  getDepartmentHeadPlanningById,
-  getDepartmentHeadPlannings,
-} from '@/api/DepartmentHeadAPI'
+import { getDepartmentHeadPlannings } from '@/api/DepartmentHeadAPI'
 import { LoadingApp } from '@/components/LoadingApp'
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { useAuth } from '@/hooks/useAuth'
 import type {
@@ -29,7 +18,7 @@ import {
 } from '@heroicons/react/24/solid'
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
-import { Navigate } from 'react-router'
+import { Navigate, useNavigate } from 'react-router'
 
 const reviewStatusColors: Record<DepartmentHeadPlanningReviewStatus, string> = {
   Pendiente: 'bg-amber-100 text-amber-800',
@@ -45,15 +34,6 @@ const sortLabels: Record<string, string> = {
   subjectName: 'Unidad de aprendizaje',
   period: 'Periodo escolar',
   status: 'Estado',
-}
-
-const formatDateTime = (date: string | null) => {
-  if (!date) return 'No disponible'
-
-  return new Date(date).toLocaleString('es-MX', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  })
 }
 
 const formatDate = (date: string) =>
@@ -90,8 +70,8 @@ function StatusBadge({
 
 export default function DepartmentHeadPlanningsView() {
   const { data: user, isLoading: isLoadingUser } = useAuth()
+  const navigate = useNavigate()
   const [searchDraft, setSearchDraft] = useState('')
-  const [selectedPlanningId, setSelectedPlanningId] = useState<number | null>(null)
   const [filters, setFilters] = useState<PlanningFiltersState>({
     page: 1,
     pageSize: 10,
@@ -115,12 +95,6 @@ export default function DepartmentHeadPlanningsView() {
     queryFn: () => getDepartmentHeadPlannings(filters),
     enabled: user?.role === 'Jefe de Departamento',
     placeholderData: (previousData) => previousData,
-  })
-
-  const { data: planningDetail, isLoading: isLoadingDetail } = useQuery({
-    queryKey: ['department-head-planning-detail', selectedPlanningId],
-    queryFn: () => getDepartmentHeadPlanningById(selectedPlanningId as number),
-    enabled: Boolean(selectedPlanningId) && user?.role === 'Jefe de Departamento',
   })
 
   const handleFilterChange = (
@@ -470,59 +444,71 @@ export default function DepartmentHeadPlanningsView() {
                       </th>
                     ))}
                     <th className="px-6 py-4 text-left text-xs font-bold tracking-wider text-gray-600 uppercase">
-                      Detalle
+                      Planeación
                     </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 bg-white">
-                  {plannings.map((planning: DepartmentHeadPlanningListItem) => (
-                    <tr key={planning.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4">
-                        <p className="font-semibold text-gray-900">
-                          {planning.teacher.name}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          {planning.teacher.email}
-                        </p>
-                      </td>
-                      <td className="px-6 py-4">
-                        <p className="font-semibold text-gray-900">
-                          {planning.subject.name}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          Código: {planning.subject.code}
-                        </p>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-700">
-                        {planning.academy?.name || 'Sin academia'}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-700">
-                        {planning.period}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="space-y-2">
-                          <StatusBadge status={planning.reviewStatus} />
-                          <p className="text-xs text-gray-500">
-                            Estado interno: {planning.status}
+                  {plannings.map((planning: DepartmentHeadPlanningListItem) => {
+                    const canViewPlanning = planning.status === 'Enviada'
+
+                    return (
+                      <tr key={planning.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4">
+                          <p className="font-semibold text-gray-900">
+                            {planning.teacher.name}
                           </p>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-700">
-                        {formatDate(planning.updatedAt)}
-                      </td>
-                      <td className="px-6 py-4">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          className="rounded-xl"
-                          onClick={() => setSelectedPlanningId(planning.id)}
-                        >
-                          <EyeIcon className="h-4 w-4" />
-                          Ver detalle
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
+                          <p className="text-sm text-gray-500">
+                            {planning.teacher.email}
+                          </p>
+                        </td>
+                        <td className="px-6 py-4">
+                          <p className="font-semibold text-gray-900">
+                            {planning.subject.name}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            Código: {planning.subject.code}
+                          </p>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-700">
+                          {planning.academy?.name || 'Sin academia'}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-700">
+                          {planning.period}
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="space-y-2">
+                            <StatusBadge status={planning.reviewStatus} />
+                            <p className="text-xs text-gray-500">
+                              Estado interno: {planning.status}
+                            </p>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-700">
+                          {formatDate(planning.updatedAt)}
+                        </td>
+                        <td className="px-6 py-4">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="rounded-xl disabled:cursor-not-allowed disabled:opacity-50"
+                            disabled={!canViewPlanning}
+                            title={
+                              canViewPlanning
+                                ? 'Ver planeación enviada'
+                                : 'Disponible sólo para planeaciones enviadas'
+                            }
+                            onClick={() =>
+                              navigate(`/department-head/plannings/${planning.id}`)
+                            }
+                          >
+                            <EyeIcon className="h-4 w-4" />
+                            Ver planeación
+                          </Button>
+                        </td>
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             </div>
@@ -563,201 +549,6 @@ export default function DepartmentHeadPlanningsView() {
           </>
         )}
       </div>
-
-      <Dialog
-        open={Boolean(selectedPlanningId)}
-        onOpenChange={(open) => {
-          if (!open) {
-            setSelectedPlanningId(null)
-          }
-        }}
-      >
-        <DialogContent className="max-w-3xl rounded-3xl border border-gray-200 p-0 data-[state=open]:slide-in-from-top-4 data-[state=open]:zoom-in-95">
-          <div className="overflow-hidden rounded-3xl">
-            <div className="bg-linear-to-r from-[#7C2855] to-[#5a1d3f] px-8 py-7 text-white">
-              <DialogHeader>
-                <DialogTitle className="text-2xl font-bold text-white">
-                  Detalle de la planeación
-                </DialogTitle>
-                <DialogDescription className="text-white/80">
-                  Revisión resumida de la planeación seleccionada.
-                </DialogDescription>
-              </DialogHeader>
-            </div>
-
-            <div className="px-8 py-7">
-              {isLoadingDetail || !planningDetail ? (
-                <div className="flex items-center justify-center py-10">
-                  <LoadingApp />
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  <div className="flex flex-wrap items-center gap-3">
-                    <StatusBadge status={planningDetail.reviewStatus} />
-                    <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700">
-                      Estado interno: {planningDetail.status}
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
-                      <p className="text-xs font-semibold tracking-wide text-gray-500 uppercase">
-                        Docente
-                      </p>
-                      <p className="mt-2 text-lg font-bold text-gray-900">
-                        {planningDetail.teacher.name}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        {planningDetail.teacher.email}
-                      </p>
-                    </div>
-
-                    <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
-                      <p className="text-xs font-semibold tracking-wide text-gray-500 uppercase">
-                        Unidad de aprendizaje
-                      </p>
-                      <p className="mt-2 text-lg font-bold text-gray-900">
-                        {planningDetail.subject.name}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        {planningDetail.subject.code}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-                    <div className="rounded-2xl border border-gray-200 p-4">
-                      <p className="text-xs font-semibold tracking-wide text-gray-500 uppercase">
-                        Academia
-                      </p>
-                      <p className="mt-2 font-semibold text-gray-900">
-                        {planningDetail.academy?.name || 'Sin academia'}
-                      </p>
-                    </div>
-                    <div className="rounded-2xl border border-gray-200 p-4">
-                      <p className="text-xs font-semibold tracking-wide text-gray-500 uppercase">
-                        Periodo escolar
-                      </p>
-                      <p className="mt-2 font-semibold text-gray-900">
-                        {planningDetail.period}
-                      </p>
-                    </div>
-                    <div className="rounded-2xl border border-gray-200 p-4">
-                      <p className="text-xs font-semibold tracking-wide text-gray-500 uppercase">
-                        Modalidad
-                      </p>
-                      <p className="mt-2 font-semibold text-gray-900">
-                        {planningDetail.subject.modality}
-                      </p>
-                    </div>
-                    <div className="rounded-2xl border border-gray-200 p-4">
-                      <p className="text-xs font-semibold tracking-wide text-gray-500 uppercase">
-                        Unidad académica
-                      </p>
-                      <p className="mt-2 font-semibold text-gray-900">
-                        {planningDetail.subject.academicUnit}
-                      </p>
-                    </div>
-                    <div className="rounded-2xl border border-gray-200 p-4">
-                      <p className="text-xs font-semibold tracking-wide text-gray-500 uppercase">
-                        Semestre
-                      </p>
-                      <p className="mt-2 font-semibold text-gray-900">
-                        {planningDetail.subject.semester}
-                      </p>
-                    </div>
-                    <div className="rounded-2xl border border-gray-200 p-4">
-                      <p className="text-xs font-semibold tracking-wide text-gray-500 uppercase">
-                        Área de formación
-                      </p>
-                      <p className="mt-2 font-semibold text-gray-900">
-                        {planningDetail.subject.areaFormation}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <div className="rounded-2xl border border-gray-200 p-4">
-                      <p className="text-xs font-semibold tracking-wide text-gray-500 uppercase">
-                        Envío de la planeación
-                      </p>
-                      <p className="mt-2 text-sm text-gray-700">
-                        {formatDateTime(planningDetail.submissionDate)}
-                      </p>
-                    </div>
-                    <div className="rounded-2xl border border-gray-200 p-4">
-                      <p className="text-xs font-semibold tracking-wide text-gray-500 uppercase">
-                        Última actualización
-                      </p>
-                      <p className="mt-2 text-sm text-gray-700">
-                        {formatDateTime(planningDetail.updatedAt)}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="rounded-2xl border border-gray-200 p-4">
-                    <p className="text-xs font-semibold tracking-wide text-gray-500 uppercase">
-                      Resumen de contenido
-                    </p>
-                    <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
-                      <div>
-                        <p className="text-xs text-gray-500">Datos generales</p>
-                        <p className="mt-1 font-semibold text-gray-900">
-                          {planningDetail.summary.hasGeneralData ? 'Sí' : 'No'}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-500">Ejes transversales</p>
-                        <p className="mt-1 font-semibold text-gray-900">
-                          {planningDetail.summary.hasTransversalAxis ? 'Sí' : 'No'}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-500">Unidades temáticas</p>
-                        <p className="mt-1 font-semibold text-gray-900">
-                          {planningDetail.summary.thematicUnitsCount}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-500">Referencias</p>
-                        <p className="mt-1 font-semibold text-gray-900">
-                          {planningDetail.summary.referencesCount}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-500">Herramienta antiplagio</p>
-                        <p className="mt-1 font-semibold text-gray-900">
-                          {planningDetail.summary.plagiarismTool || 'Sin definir'}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="rounded-2xl border border-gray-200 p-4">
-                    <p className="text-xs font-semibold tracking-wide text-gray-500 uppercase">
-                      Retroalimentación
-                    </p>
-                    <p className="mt-2 text-sm leading-6 text-gray-700">
-                      {planningDetail.feedback || 'Sin retroalimentación registrada.'}
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <DialogFooter className="border-t border-gray-200 px-8 py-5">
-              <Button
-                type="button"
-                variant="outline"
-                className="rounded-xl"
-                onClick={() => setSelectedPlanningId(null)}
-              >
-                Cerrar
-              </Button>
-            </DialogFooter>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }

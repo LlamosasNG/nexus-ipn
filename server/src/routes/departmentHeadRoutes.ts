@@ -21,20 +21,20 @@ router.get(
 router.get(
   '/plannings',
   readLimiter,
-  query('page').optional().isInt({ min: 1 }),
-  query('pageSize').optional().isInt({ min: 1, max: 50 }),
-  query('teacherId').optional().isInt({ min: 1 }),
-  query('subjectId').optional().isInt({ min: 1 }),
-  query('academyId').optional().isInt({ min: 1 }),
-  query('period').optional().isString(),
-  query('search').optional().isString(),
+  query('page').optional({ checkFalsy: true }).isInt({ min: 1 }),
+  query('pageSize').optional({ checkFalsy: true }).isInt({ min: 1, max: 50 }),
+  query('teacherId').optional({ checkFalsy: true }).isInt({ min: 1 }),
+  query('subjectId').optional({ checkFalsy: true }).isInt({ min: 1 }),
+  query('academyId').optional({ checkFalsy: true }).isInt({ min: 1 }),
+  query('period').optional({ checkFalsy: true }).isString(),
+  query('search').optional({ checkFalsy: true }).isString(),
   query('status')
-    .optional()
+    .optional({ checkFalsy: true })
     .isIn(['Pendiente', 'En revisión', 'Validada', 'Rechazada']),
   query('sortBy')
-    .optional()
+    .optional({ checkFalsy: true })
     .isIn(['updatedAt', 'createdAt', 'teacherName', 'subjectName', 'period', 'status']),
-  query('sortOrder').optional().isIn(['asc', 'desc']),
+  query('sortOrder').optional({ checkFalsy: true }).isIn(['asc', 'desc']),
   handleInputErrors,
   DepartmentHeadPlanningController.getAll
 )

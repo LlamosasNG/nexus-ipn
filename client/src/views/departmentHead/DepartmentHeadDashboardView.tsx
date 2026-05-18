@@ -5,9 +5,10 @@ import {
   AcademicCapIcon,
   ChartBarIcon,
   CheckBadgeIcon,
-  ClockIcon,
   ClipboardDocumentListIcon,
+  ClockIcon,
   FolderOpenIcon,
+  PencilSquareIcon,
 } from '@heroicons/react/24/solid'
 import { useQuery } from '@tanstack/react-query'
 import { Navigate } from 'react-router'
@@ -20,14 +21,26 @@ const metricCards = [
     accent: 'from-[#7C2855] to-[#5a1d3f]',
   },
   {
+    key: 'teachersWithDraftPlannings',
+    title: 'Docentes con borrador',
+    icon: PencilSquareIcon,
+    accent: 'from-indigo-700 to-blue-500',
+  },
+  {
     key: 'totalPlannings',
     title: 'Total de planeaciones creadas',
     icon: ClipboardDocumentListIcon,
     accent: 'from-[#D4AF37] to-[#e8c96f]',
   },
   {
+    key: 'draftPlannings',
+    title: 'Planeaciones en borrador',
+    icon: PencilSquareIcon,
+    accent: 'from-slate-700 to-slate-500',
+  },
+  {
     key: 'pendingPlannings',
-    title: 'Planeaciones pendientes',
+    title: 'Planeaciones en revisión',
     icon: ClockIcon,
     accent: 'from-amber-500 to-orange-400',
   },
@@ -58,6 +71,8 @@ export default function DepartmentHeadDashboardView() {
     queryKey: ['department-head-dashboard'],
     queryFn: getDepartmentHeadDashboard,
     enabled: user?.role === 'Jefe de Departamento',
+    refetchInterval: 15000,
+    refetchIntervalInBackground: false,
   })
 
   if (isLoadingUser || isLoading) {
@@ -106,7 +121,7 @@ export default function DepartmentHeadDashboardView() {
         </div>
       </div>
 
-      <div className="mb-8 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+      <div className="mb-8 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
         {metricCards.map((card) => {
           const Icon = card.icon
           const value =
@@ -150,7 +165,8 @@ export default function DepartmentHeadDashboardView() {
                 Actividad reciente
               </h2>
               <p className="mt-1 text-sm text-gray-600">
-                Últimos movimientos registrados en planeaciones y recursos.
+                Últimos movimientos registrados por docentes, planeaciones y
+                recursos.
               </p>
             </div>
             <span className="rounded-full bg-[#7C2855]/8 px-4 py-2 text-sm font-semibold text-[#7C2855]">
@@ -181,7 +197,9 @@ export default function DepartmentHeadDashboardView() {
                     >
                       {activity.type === 'planning'
                         ? 'Planeación'
-                        : 'Recurso digital'}
+                        : activity.type === 'resource'
+                          ? 'Recurso digital'
+                          : 'Docente'}
                     </span>
                     <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700">
                       {activity.status}

@@ -1,4 +1,13 @@
 import { z } from 'zod'
+import {
+  AcademicPeriodSchema,
+  GeneralDataSchema,
+  PlanningDidacticOrganizationSchema,
+  PlagiarismToolSchema,
+  ReferenceSchema,
+  ThematicUnitSchema,
+  TransversalAxisSchema,
+} from './planning'
 
 export const DepartmentHeadPlanningReviewStatusSchema = z.enum([
   'Pendiente',
@@ -9,7 +18,7 @@ export const DepartmentHeadPlanningReviewStatusSchema = z.enum([
 
 export const DepartmentHeadActivitySchema = z.object({
   id: z.string(),
-  type: z.enum(['planning', 'resource']),
+  type: z.enum(['planning', 'resource', 'teacher']),
   title: z.string(),
   subjectName: z.string(),
   teacherName: z.string(),
@@ -26,7 +35,10 @@ export const DepartmentHeadDashboardSchema = z.object({
     .nullable(),
   metrics: z.object({
     totalTeachers: z.number(),
+    activeTeachers: z.number(),
+    teachersWithDraftPlannings: z.number(),
     totalPlannings: z.number(),
+    draftPlannings: z.number(),
     pendingPlannings: z.number(),
     approvedPlannings: z.number(),
     approvedDigitalResources: z.number(),
@@ -53,7 +65,7 @@ export const DepartmentHeadPlanningSubjectFilterOptionSchema = z.object({
 
 export const DepartmentHeadPlanningListItemSchema = z.object({
   id: z.number(),
-  period: z.string(),
+  period: AcademicPeriodSchema,
   status: z.string(),
   reviewStatus: DepartmentHeadPlanningReviewStatusSchema,
   submissionDate: z.string().nullable(),
@@ -90,14 +102,14 @@ export const DepartmentHeadPlanningListResponseSchema = z.object({
     teachers: z.array(DepartmentHeadPlanningFilterOptionSchema),
     subjects: z.array(DepartmentHeadPlanningSubjectFilterOptionSchema),
     academies: z.array(DepartmentHeadPlanningFilterOptionSchema),
-    periods: z.array(z.string()),
+    periods: z.array(AcademicPeriodSchema),
     statuses: z.array(DepartmentHeadPlanningReviewStatusSchema),
   }),
 })
 
 export const DepartmentHeadPlanningDetailSchema = z.object({
   id: z.number(),
-  period: z.string(),
+  period: AcademicPeriodSchema,
   status: z.string(),
   reviewStatus: DepartmentHeadPlanningReviewStatusSchema,
   submissionDate: z.string().nullable(),
@@ -130,6 +142,14 @@ export const DepartmentHeadPlanningDetailSchema = z.object({
     thematicUnitsCount: z.number(),
     referencesCount: z.number(),
     plagiarismTool: z.string().nullable(),
+  }),
+  submittedContent: z.object({
+    generalData: GeneralDataSchema.nullable(),
+    transversalAxis: TransversalAxisSchema.nullable(),
+    didacticOrganization: PlanningDidacticOrganizationSchema.nullable(),
+    thematicUnits: z.array(ThematicUnitSchema),
+    references: z.array(ReferenceSchema),
+    plagiarismTool: PlagiarismToolSchema.nullable(),
   }),
 })
 

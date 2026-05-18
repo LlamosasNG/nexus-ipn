@@ -54,6 +54,7 @@ export default function ProfileTeacherView() {
 
   const getResourceTypeLabel = (resourceType: DigitalBookResource['resourceType']) => {
     if (resourceType === 'digital-book') return 'Libro Digital'
+    if (resourceType === 'interactive-digital-book') return 'Libro Digital Interactivo'
     return resourceType
   }
 

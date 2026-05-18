@@ -1,10 +1,14 @@
 import api from '@/lib/axios'
-import type { DigitalBookPayload, DigitalBookResource } from '@/types'
+import type {
+  DigitalBookPayload,
+  DigitalBookResource,
+  DigitalResourceType,
+} from '@/types'
 import { isAxiosError } from 'axios'
 
 type DigitalResourceParams = {
   subjectId: number
-  resourceType: 'digital-book'
+  resourceType: DigitalResourceType
 }
 
 type SaveDigitalBookSectionParams = DigitalResourceParams & {

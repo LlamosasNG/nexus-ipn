@@ -11,13 +11,14 @@ import {
   DocumentTextIcon,
   UserIcon,
 } from '@heroicons/react/24/solid'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate, useParams } from 'react-router'
 import { toast } from 'sonner'
 
 export default function ConfirmPlanningView() {
   const { subjectId } = useParams()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const { data: user } = useAuth()
 
   const { data: subjects, isLoading } = useQuery({
@@ -32,6 +33,10 @@ export default function ConfirmPlanningView() {
     onSuccess: (data) => {
       if (!data) return
       toast.success(data.message)
+      queryClient.invalidateQueries({ queryKey: ['plannings'] })
+      queryClient.invalidateQueries({ queryKey: ['user-subjects'] })
+      queryClient.invalidateQueries({ queryKey: ['department-head-dashboard'] })
+      queryClient.invalidateQueries({ queryKey: ['department-head-plannings'] })
       navigate(`/plannings/${data.data.id}`)
     },
     onError: (error) => {

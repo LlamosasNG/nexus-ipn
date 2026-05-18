@@ -17,15 +17,16 @@ export class PlanningController {
     try {
       const userId = req.user.id
       const subjectId = req.params.subjectId
+      const period = req.userSubject.period
 
       const existingPlanning = await Planning.findOne({
-        where: { userId, subjectId },
+        where: { userId, subjectId, period },
       })
 
       if (existingPlanning) {
         return res
           .status(400)
-          .json({ error: 'Ya tienes una planeación para esta materia' })
+          .json({ error: 'Ya tienes una planeación para esta materia y período' })
       }
 
       const subject = await Subject.findByPk(Number(subjectId), {
@@ -39,7 +40,7 @@ export class PlanningController {
       const planning = await Planning.create({
         userId,
         subjectId,
-        period: req.userSubject.period,
+        period,
         status: PlanningStatus.DRAFT,
       })
       res.status(201).json({

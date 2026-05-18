@@ -58,7 +58,9 @@ export default function SelectResourceTypeView() {
     () => resourceOptions.find((option) => option.id === selectedType),
     [selectedType]
   )
-  const isImplementedType = selectedType === 'digital-book'
+  const isImplementedType =
+    selectedType === 'digital-book' ||
+    selectedType === 'interactive-digital-book'
 
   if (isLoading) {
     return (

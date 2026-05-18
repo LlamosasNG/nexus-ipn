@@ -1,6 +1,9 @@
 import { planningWriteLimiter, readLimiter } from '@/config/limiter'
 import { DigitalDidacticResourceController } from '@/controllers/DigitalDidacticResourceController'
-import type { DigitalBookUpsertPayload } from '@/interfaces/DigitalResourceInterfaces'
+import type {
+  DigitalBookUpsertPayload,
+  DigitalResourceType,
+} from '@/interfaces/DigitalResourceInterfaces'
 import { authenticate } from '@/middleware/auth'
 import { hasAccess, subjectExists } from '@/middleware/subject'
 import { handleInputErrors } from '@/middleware/validation'
@@ -9,7 +12,7 @@ import { body, param } from 'express-validator'
 
 const router: Router = Router()
 
-const supportedResourceTypes = ['digital-book']
+const supportedResourceTypes = ['digital-book', 'interactive-digital-book']
 
 const isObjectRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -24,9 +27,24 @@ const isFiniteNumber = (value: unknown): value is number =>
 const isStringArray = (value: unknown): value is string[] =>
   Array.isArray(value) && value.every((item) => typeof item === 'string')
 
-const validateIdentification = (value: unknown) => {
+const validateIdentification = (
+  value: unknown,
+  resourceType?: DigitalResourceType
+) => {
   if (!isObjectRecord(value)) return false
-  return isString(value.title) && isStringArray(value.thematicUnits)
+  const interactiveDescriptionIsValid =
+    resourceType === 'interactive-digital-book'
+      ? isString(value.interactiveDescription) &&
+        value.interactiveDescription.trim().length > 0
+      : value.interactiveDescription === undefined ||
+        isString(value.interactiveDescription)
+
+  return (
+    (value.coverImage === undefined || isString(value.coverImage)) &&
+    interactiveDescriptionIsValid &&
+    isString(value.title) &&
+    isStringArray(value.thematicUnits)
+  )
 }
 
 const validatePedagogical = (value: unknown) => {
@@ -160,7 +178,10 @@ const validateCredits = (value: unknown) => {
   )
 }
 
-const validateDigitalBookPayload = (value: unknown) => {
+const validateDigitalBookPayload = (
+  value: unknown,
+  resourceType?: DigitalResourceType
+) => {
   if (!isObjectRecord(value)) {
     throw new Error('El cuerpo de la solicitud debe ser un objeto válido')
   }
@@ -190,7 +211,8 @@ const validateDigitalBookPayload = (value: unknown) => {
   }
 
   if (
-    (payload.identification && !validateIdentification(payload.identification)) ||
+    (payload.identification &&
+      !validateIdentification(payload.identification, resourceType)) ||
     (payload.pedagogical && !validatePedagogical(payload.pedagogical)) ||
     (payload.methodology && !validateMethodology(payload.methodology)) ||
     (payload.content && !validateContent(payload.content)) ||
@@ -219,7 +241,9 @@ router.post(
   param('resourceType')
     .isIn(supportedResourceTypes)
     .withMessage('El tipo de recurso digital no es compatible'),
-  body().custom(validateDigitalBookPayload),
+  body().custom((value, { req }) =>
+    validateDigitalBookPayload(value, req.params.resourceType)
+  ),
   handleInputErrors,
   DigitalDidacticResourceController.createOrUpdate
 )
@@ -231,7 +255,9 @@ router.put(
   param('resourceType')
     .isIn(supportedResourceTypes)
     .withMessage('El tipo de recurso digital no es compatible'),
-  body().custom(validateDigitalBookPayload),
+  body().custom((value, { req }) =>
+    validateDigitalBookPayload(value, req.params.resourceType)
+  ),
   handleInputErrors,
   DigitalDidacticResourceController.createOrUpdate
 )
