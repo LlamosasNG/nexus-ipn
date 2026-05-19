@@ -1,14 +1,37 @@
-import { getDepartmentHeadPlanningById } from '@/api/DepartmentHeadAPI'
+import {
+  addDepartmentHeadPlanningObservation,
+  getDepartmentHeadPlanningById,
+  reviewDepartmentHeadPlanning,
+} from '@/api/DepartmentHeadAPI'
 import { LoadingApp } from '@/components/LoadingApp'
 import { PlanningFormHeader } from '@/components/planning/PlanningFormHeader'
 import PlanningFooter from '@/components/planning/PlanningFooter'
 import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Textarea } from '@/components/ui/textarea'
 import { useAuth } from '@/hooks/useAuth'
-import type { DepartmentHeadPlanningDetail } from '@/types'
-import { ArrowLeftIcon, ArrowRightIcon } from '@heroicons/react/24/solid'
-import { useQuery } from '@tanstack/react-query'
+import type {
+  DepartmentHeadPlanningDetail,
+  DepartmentHeadPlanningObservation,
+} from '@/types'
+import {
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  ChatBubbleLeftRightIcon,
+  CheckCircleIcon,
+  XCircleIcon,
+} from '@heroicons/react/24/solid'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState, type ReactNode } from 'react'
 import { Link, Navigate, useParams } from 'react-router'
+import { toast } from 'sonner'
 
 const sections = [
   { id: 1, label: 'Datos' },
@@ -33,6 +56,12 @@ const formatValue = (value: unknown) => {
   if (typeof value === 'number') return value.toString()
   return String(value)
 }
+
+const formatObservationTime = (date: string) =>
+  new Date(date).toLocaleString('es-MX', {
+    dateStyle: 'short',
+    timeStyle: 'short',
+  })
 
 function ReadOnlyField({
   label,
@@ -76,7 +105,146 @@ function PlanningMeta({ planning }: { planning: DepartmentHeadPlanningDetail }) 
         label="Fecha de envío"
         value={formatDateTime(planning.submissionDate)}
       />
+      <ReadOnlyField label="Estado de revisión" value={planning.reviewStatus} />
     </div>
+  )
+}
+
+function ObservationBubble({
+  observation,
+}: {
+  observation: DepartmentHeadPlanningObservation
+}) {
+  const isGeneral = observation.section === 0
+
+  return (
+    <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <p className="text-sm font-bold text-gray-900">
+            {observation.author.name}
+          </p>
+          <p className="text-xs text-gray-500">
+            {isGeneral ? 'Observación general' : `Sección ${observation.section}`} ·{' '}
+            {formatObservationTime(observation.createdAt)}
+          </p>
+        </div>
+        <span className="rounded-full bg-[#7C2855]/10 px-3 py-1 text-xs font-semibold text-[#7C2855]">
+          {observation.author.role}
+        </span>
+      </div>
+      <p className="whitespace-pre-line text-sm leading-6 text-gray-700">
+        {observation.message}
+      </p>
+    </div>
+  )
+}
+
+function ReviewPanel({
+  planning,
+  currentSection,
+  observationDraft,
+  isAddingObservation,
+  onObservationDraftChange,
+  onSubmitObservation,
+  onOpenReviewDialog,
+}: {
+  planning: DepartmentHeadPlanningDetail
+  currentSection: number
+  observationDraft: string
+  isAddingObservation: boolean
+  onObservationDraftChange: (value: string) => void
+  onSubmitObservation: () => void
+  onOpenReviewDialog: (action: 'approve' | 'reject') => void
+}) {
+  const sectionObservations = planning.observations.filter(
+    (observation) => observation.section === currentSection
+  )
+  const generalObservations = planning.observations.filter(
+    (observation) => observation.section === 0
+  )
+
+  return (
+    <aside className="space-y-4 rounded-3xl border border-gray-200 bg-gray-50 p-5">
+      <div className="flex items-center gap-3">
+        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#7C2855]/10">
+          <ChatBubbleLeftRightIcon className="h-6 w-6 text-[#7C2855]" />
+        </div>
+        <div>
+          <h2 className="text-lg font-bold text-gray-900">Observaciones</h2>
+          <p className="text-sm text-gray-600">
+            Chat de revisión para la sección {currentSection}.
+          </p>
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        {sectionObservations.length === 0 ? (
+          <p className="rounded-2xl border border-dashed border-gray-300 bg-white p-4 text-sm text-gray-500">
+            Sin observaciones para esta sección.
+          </p>
+        ) : (
+          sectionObservations.map((observation) => (
+            <ObservationBubble key={observation.id} observation={observation} />
+          ))
+        )}
+      </div>
+
+      {generalObservations.length > 0 && (
+        <div className="space-y-3 border-t border-gray-200 pt-4">
+          <p className="text-sm font-bold text-gray-800">
+            Observaciones generales
+          </p>
+          {generalObservations.map((observation) => (
+            <ObservationBubble key={observation.id} observation={observation} />
+          ))}
+        </div>
+      )}
+
+      {planning.canReview ? (
+        <div className="space-y-3 border-t border-gray-200 pt-4">
+          <Textarea
+            value={observationDraft}
+            onChange={(event) => onObservationDraftChange(event.target.value)}
+            placeholder="Escribe una observación específica de esta sección..."
+            className="min-h-28 rounded-2xl bg-white"
+            maxLength={2000}
+          />
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <Button
+              type="button"
+              variant="outline"
+              className="rounded-xl"
+              disabled={isAddingObservation}
+              onClick={onSubmitObservation}
+            >
+              {isAddingObservation ? 'Enviando...' : 'Agregar observación'}
+            </Button>
+            <Button
+              type="button"
+              className="rounded-xl bg-emerald-600 hover:bg-emerald-700"
+              onClick={() => onOpenReviewDialog('approve')}
+            >
+              <CheckCircleIcon className="h-5 w-5" />
+              Aprobar
+            </Button>
+            <Button
+              type="button"
+              className="rounded-xl bg-rose-600 hover:bg-rose-700"
+              onClick={() => onOpenReviewDialog('reject')}
+            >
+              <XCircleIcon className="h-5 w-5" />
+              Rechazar
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <p className="rounded-2xl border border-gray-200 bg-white p-4 text-sm text-gray-600">
+          Esta planeación ya fue {planning.reviewStatus.toLowerCase()} y no admite
+          nuevas acciones de revisión.
+        </p>
+      )}
+    </aside>
   )
 }
 
@@ -315,7 +483,13 @@ function renderSection(
 export default function DepartmentHeadPlanningViewerView() {
   const { data: user, isLoading: isLoadingUser } = useAuth()
   const { planningId } = useParams()
+  const queryClient = useQueryClient()
   const [currentSection, setCurrentSection] = useState(1)
+  const [observationDraft, setObservationDraft] = useState('')
+  const [reviewDialogAction, setReviewDialogAction] = useState<
+    'approve' | 'reject' | null
+  >(null)
+  const [reviewFeedback, setReviewFeedback] = useState('')
 
   const { data: planning, isLoading, isError, error } = useQuery({
     queryKey: ['department-head-planning-detail', planningId],
@@ -323,6 +497,64 @@ export default function DepartmentHeadPlanningViewerView() {
     enabled: Boolean(planningId) && user?.role === 'Jefe de Departamento',
     retry: false,
   })
+
+  const planningNumberId = Number(planningId)
+
+  const addObservationMutation = useMutation({
+    mutationFn: () =>
+      addDepartmentHeadPlanningObservation({
+        planningId: planningNumberId,
+        section: currentSection,
+        message: observationDraft.trim(),
+      }),
+    onSuccess: (message) => {
+      setObservationDraft('')
+      queryClient.invalidateQueries({
+        queryKey: ['department-head-planning-detail', planningId],
+      })
+      toast.success(message || 'Observación registrada correctamente')
+    },
+    onError: (error) => toast.error(error.message),
+  })
+
+  const reviewMutation = useMutation({
+    mutationFn: () =>
+      reviewDepartmentHeadPlanning({
+        planningId: planningNumberId,
+        action: reviewDialogAction || 'reject',
+        feedback: reviewFeedback.trim(),
+      }),
+    onSuccess: (message) => {
+      setReviewDialogAction(null)
+      setReviewFeedback('')
+      queryClient.invalidateQueries({
+        queryKey: ['department-head-planning-detail', planningId],
+      })
+      queryClient.invalidateQueries({ queryKey: ['department-head-plannings'] })
+      toast.success(message || 'Estado actualizado correctamente')
+    },
+    onError: (error) => toast.error(error.message),
+  })
+
+  const handleSubmitObservation = () => {
+    if (!observationDraft.trim()) {
+      toast.error('Escribe una observación antes de enviarla')
+      return
+    }
+
+    addObservationMutation.mutate()
+  }
+
+  const handleConfirmReview = () => {
+    if (!reviewDialogAction) return
+
+    if (reviewDialogAction === 'reject' && !reviewFeedback.trim()) {
+      toast.error('Agrega una retroalimentación para rechazar la planeación')
+      return
+    }
+
+    reviewMutation.mutate()
+  }
 
   if (isLoadingUser || isLoading) {
     return (
@@ -373,7 +605,18 @@ export default function DepartmentHeadPlanningViewerView() {
 
           <PlanningMeta planning={planning} />
 
-          {renderSection(currentSection, planning)}
+          <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
+            <div>{renderSection(currentSection, planning)}</div>
+            <ReviewPanel
+              planning={planning}
+              currentSection={currentSection}
+              observationDraft={observationDraft}
+              isAddingObservation={addObservationMutation.isPending}
+              onObservationDraftChange={setObservationDraft}
+              onSubmitObservation={handleSubmitObservation}
+              onOpenReviewDialog={setReviewDialogAction}
+            />
+          </div>
 
           <PlanningFooter currentPage={currentSection} totalPages={5} />
         </div>
@@ -422,6 +665,64 @@ export default function DepartmentHeadPlanningViewerView() {
           </div>
         </div>
       </div>
+
+      <Dialog
+        open={reviewDialogAction !== null}
+        onOpenChange={(open) => {
+          if (!open) setReviewDialogAction(null)
+        }}
+      >
+        <DialogContent className="max-w-lg rounded-2xl border-0 p-0 shadow-2xl">
+          <DialogHeader className="border-b border-gray-200 px-6 py-5">
+            <DialogTitle className="text-xl font-bold text-gray-900">
+              {reviewDialogAction === 'approve'
+                ? 'Aprobar planeación'
+                : 'Rechazar planeación'}
+            </DialogTitle>
+            <DialogDescription className="mt-2 text-sm text-gray-600">
+              Esta acción actualizará el estado de la planeación y notificará la
+              decisión en la gestión del departamento.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3 px-6 py-5">
+            <label className="text-sm font-semibold text-gray-700">
+              Retroalimentación {reviewDialogAction === 'reject' ? 'obligatoria' : 'opcional'}
+            </label>
+            <Textarea
+              value={reviewFeedback}
+              onChange={(event) => setReviewFeedback(event.target.value)}
+              placeholder="Agrega observaciones generales para el docente..."
+              className="min-h-32 rounded-2xl"
+              maxLength={2000}
+            />
+          </div>
+
+          <DialogFooter className="border-t border-gray-200 px-6 py-4 sm:justify-end">
+            <Button
+              type="button"
+              variant="outline"
+              className="rounded-xl"
+              disabled={reviewMutation.isPending}
+              onClick={() => setReviewDialogAction(null)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              className={`rounded-xl ${
+                reviewDialogAction === 'approve'
+                  ? 'bg-emerald-600 hover:bg-emerald-700'
+                  : 'bg-rose-600 hover:bg-rose-700'
+              }`}
+              disabled={reviewMutation.isPending}
+              onClick={handleConfirmReview}
+            >
+              {reviewMutation.isPending ? 'Guardando...' : 'Confirmar'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

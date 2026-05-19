@@ -73,3 +73,57 @@ export async function getDepartmentHeadPlanningById(planningId: number) {
     }
   }
 }
+
+export async function addDepartmentHeadPlanningObservation({
+  planningId,
+  section,
+  message,
+}: {
+  planningId: number
+  section: number
+  message: string
+}) {
+  try {
+    const { data } = await api.post<{ message: string }>(
+      `/department-head/plannings/${planningId}/observations`,
+      { section, message }
+    )
+
+    return data.message
+  } catch (error) {
+    if (isAxiosError(error) && error.response) {
+      throw new Error(
+        error.response.data.error ||
+          error.response.data.errors?.[0]?.msg ||
+          'No fue posible registrar la observación'
+      )
+    }
+  }
+}
+
+export async function reviewDepartmentHeadPlanning({
+  planningId,
+  action,
+  feedback,
+}: {
+  planningId: number
+  action: 'approve' | 'reject'
+  feedback: string
+}) {
+  try {
+    const { data } = await api.patch<{ message: string }>(
+      `/department-head/plannings/${planningId}/review`,
+      { action, feedback }
+    )
+
+    return data.message
+  } catch (error) {
+    if (isAxiosError(error) && error.response) {
+      throw new Error(
+        error.response.data.error ||
+          error.response.data.errors?.[0]?.msg ||
+          'No fue posible actualizar el estado de la planeación'
+      )
+    }
+  }
+}

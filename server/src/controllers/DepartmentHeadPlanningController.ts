@@ -2,6 +2,7 @@ import Academy from '@/models/Academy'
 import GeneralData from '@/models/GeneralData'
 import Planning, { PlanningStatus } from '@/models/Planning'
 import PlanningDidacticOrganization from '@/models/PlanningDidacticOrganization'
+import PlanningObservation from '@/models/PlanningObservation'
 import PlagiarismTool from '@/models/PlagiarismTool'
 import Reference from '@/models/Reference'
 import SessionActivity from '@/models/SessionActivity'
@@ -36,6 +37,52 @@ const getReviewStatus = (
   if (status === PlanningStatus.REJECTED) return 'Rechazada'
   return 'Pendiente'
 }
+
+const canReviewPlanning = (status: PlanningStatus) =>
+  status === PlanningStatus.SENT
+
+const REVIEW_ACTION_TO_STATUS = {
+  approve: PlanningStatus.APPROVED,
+  reject: PlanningStatus.REJECTED,
+} as const
+
+type ReviewAction = keyof typeof REVIEW_ACTION_TO_STATUS
+
+const findPlanningForDepartmentHead = async (
+  planningId: number,
+  academyId: number
+) =>
+  Planning.findOne({
+    where: { id: planningId },
+    include: [
+      {
+        model: User,
+        attributes: ['id', 'name', 'email'],
+        where: {
+          academyId,
+          role: 'Docente',
+        },
+      },
+      {
+        model: Subject,
+        attributes: [
+          'id',
+          'name',
+          'code',
+          'academicUnit',
+          'semester',
+          'areaFormation',
+          'modality',
+        ],
+        include: [
+          {
+            model: Academy,
+            attributes: ['id', 'name'],
+          },
+        ],
+      },
+    ],
+  })
 
 const getSortOrder = (
   sortBy: string,
@@ -303,49 +350,26 @@ export class DepartmentHeadPlanningController {
         })
       }
 
-      const planning = await Planning.findOne({
-        where: { id: planningId },
-        include: [
-          {
-            model: User,
-            attributes: ['id', 'name', 'email'],
-            where: {
-              academyId,
-              role: 'Docente',
-            },
-          },
-          {
-            model: Subject,
-            attributes: [
-              'id',
-              'name',
-              'code',
-              'academicUnit',
-              'semester',
-              'areaFormation',
-              'modality',
-            ],
-            include: [
-              {
-                model: Academy,
-                attributes: ['id', 'name'],
-              },
-            ],
-          },
-        ],
-      })
+      const planning = await findPlanningForDepartmentHead(planningId, academyId)
 
       if (!planning) {
         return res.status(404).json({ error: 'Planeación no encontrada' })
       }
 
-      if (planning.status !== PlanningStatus.SENT) {
+      if (
+        ![
+          PlanningStatus.SENT,
+          PlanningStatus.APPROVED,
+          PlanningStatus.REJECTED,
+        ].includes(planning.status)
+      ) {
         return res.status(403).json({
-          error: 'Solo puedes visualizar planeaciones enviadas por el docente',
+          error:
+            'Solo puedes visualizar planeaciones enviadas, aprobadas o rechazadas',
         })
       }
 
-      const [generalData, transversalAxis, didacticOrganization, thematicUnits, references, plagiarismTool] =
+      const [generalData, transversalAxis, didacticOrganization, thematicUnits, references, plagiarismTool, observations] =
         await Promise.all([
           GeneralData.findOne({
             where: { planningId: planning.id },
@@ -366,6 +390,16 @@ export class DepartmentHeadPlanningController {
           }),
           PlagiarismTool.findOne({
             where: { planningId: planning.id },
+          }),
+          PlanningObservation.findAll({
+            where: { planningId: planning.id },
+            include: [
+              {
+                model: User,
+                attributes: ['id', 'name', 'role'],
+              },
+            ],
+            order: [['createdAt', 'ASC']],
           }),
         ])
 
@@ -400,6 +434,7 @@ export class DepartmentHeadPlanningController {
         reviewStatus: getReviewStatus(planning.status),
         submissionDate: planning.submissionDate,
         feedback: planning.feedback,
+        canReview: canReviewPlanning(planning.status),
         createdAt: planning.createdAt,
         updatedAt: planning.updatedAt,
         teacher: {
@@ -437,12 +472,142 @@ export class DepartmentHeadPlanningController {
           references,
           plagiarismTool,
         },
+        observations: observations.map((observation) => ({
+          id: observation.id,
+          planningId: observation.planningId,
+          section: observation.section,
+          message: observation.message,
+          createdAt: observation.createdAt,
+          updatedAt: observation.updatedAt,
+          author: {
+            id: observation.user.id,
+            name: observation.user.name,
+            role: observation.user.role,
+          },
+        })),
       })
     } catch (error) {
       console.log(error)
       res.status(500).json({
         error:
           'Hubo un error al obtener el detalle de la planeación del departamento',
+      })
+    }
+  }
+
+  static addObservation = async (req: Request, res: Response) => {
+    try {
+      const academyId = req.user.academyId
+      const planningId = Number(req.params.planningId)
+      const section = Number(req.body.section)
+      const message = String(req.body.message || '').trim()
+
+      if (!academyId) {
+        return res.status(400).json({
+          error: 'El usuario no tiene una academia asignada',
+        })
+      }
+
+      const planning = await findPlanningForDepartmentHead(planningId, academyId)
+
+      if (!planning) {
+        return res.status(404).json({ error: 'Planeación no encontrada' })
+      }
+
+      if (!canReviewPlanning(planning.status)) {
+        return res.status(400).json({
+          error: 'Solo puedes agregar observaciones a planeaciones en revisión',
+        })
+      }
+
+      const observation = await PlanningObservation.create({
+        planningId: planning.id,
+        userId: req.user.id,
+        section,
+        message,
+      })
+
+      res.status(201).json({
+        message: 'Observación registrada correctamente',
+        data: {
+          id: observation.id,
+          planningId: observation.planningId,
+          section: observation.section,
+          message: observation.message,
+          createdAt: observation.createdAt,
+          updatedAt: observation.updatedAt,
+          author: {
+            id: req.user.id,
+            name: req.user.name,
+            role: req.user.role,
+          },
+        },
+      })
+    } catch (error) {
+      console.log(error)
+      res.status(500).json({
+        error: 'Hubo un error al registrar la observación',
+      })
+    }
+  }
+
+  static review = async (req: Request, res: Response) => {
+    try {
+      const academyId = req.user.academyId
+      const planningId = Number(req.params.planningId)
+      const action = req.body.action as ReviewAction
+      const feedback = String(req.body.feedback || '').trim()
+
+      if (!academyId) {
+        return res.status(400).json({
+          error: 'El usuario no tiene una academia asignada',
+        })
+      }
+
+      const planning = await findPlanningForDepartmentHead(planningId, academyId)
+
+      if (!planning) {
+        return res.status(404).json({ error: 'Planeación no encontrada' })
+      }
+
+      if (!canReviewPlanning(planning.status)) {
+        return res.status(400).json({
+          error: 'Solo puedes aprobar o rechazar planeaciones en revisión',
+        })
+      }
+
+      if (action === 'reject' && !feedback) {
+        return res.status(400).json({
+          error: 'La retroalimentación es obligatoria para rechazar la planeación',
+        })
+      }
+
+      planning.status = REVIEW_ACTION_TO_STATUS[action]
+      planning.feedback = feedback
+      await planning.save()
+
+      if (feedback) {
+        await PlanningObservation.create({
+          planningId: planning.id,
+          userId: req.user.id,
+          section: 0,
+          message: feedback,
+        })
+      }
+
+      res.json({
+        message:
+          action === 'approve'
+            ? 'Planeación aprobada correctamente'
+            : 'Planeación rechazada correctamente',
+        status: planning.status,
+        reviewStatus: getReviewStatus(planning.status),
+        feedback: planning.feedback,
+      })
+    } catch (error) {
+      console.log(error)
+      res.status(500).json({
+        error: 'Hubo un error al actualizar el estado de la planeación',
       })
     }
   }

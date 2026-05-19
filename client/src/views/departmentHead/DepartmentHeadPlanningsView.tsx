@@ -450,7 +450,9 @@ export default function DepartmentHeadPlanningsView() {
                 </thead>
                 <tbody className="divide-y divide-gray-100 bg-white">
                   {plannings.map((planning: DepartmentHeadPlanningListItem) => {
-                    const canViewPlanning = planning.status === 'Enviada'
+                    const canViewPlanning = ['Enviada', 'Aprobada', 'Rechazada'].includes(
+                      planning.status
+                    )
 
                     return (
                       <tr key={planning.id} className="hover:bg-gray-50">

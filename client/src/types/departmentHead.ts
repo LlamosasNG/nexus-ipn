@@ -107,6 +107,20 @@ export const DepartmentHeadPlanningListResponseSchema = z.object({
   }),
 })
 
+export const DepartmentHeadPlanningObservationSchema = z.object({
+  id: z.number(),
+  planningId: z.number(),
+  section: z.number(),
+  message: z.string(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+  author: z.object({
+    id: z.number(),
+    name: z.string(),
+    role: z.string(),
+  }),
+})
+
 export const DepartmentHeadPlanningDetailSchema = z.object({
   id: z.number(),
   period: AcademicPeriodSchema,
@@ -114,6 +128,7 @@ export const DepartmentHeadPlanningDetailSchema = z.object({
   reviewStatus: DepartmentHeadPlanningReviewStatusSchema,
   submissionDate: z.string().nullable(),
   feedback: z.string().nullable(),
+  canReview: z.boolean(),
   createdAt: z.string(),
   updatedAt: z.string(),
   teacher: z.object({
@@ -151,6 +166,7 @@ export const DepartmentHeadPlanningDetailSchema = z.object({
     references: z.array(ReferenceSchema),
     plagiarismTool: PlagiarismToolSchema.nullable(),
   }),
+  observations: z.array(DepartmentHeadPlanningObservationSchema),
 })
 
 export type DepartmentHeadPlanningListResponse = z.infer<
@@ -161,6 +177,9 @@ export type DepartmentHeadPlanningListItem = z.infer<
 >
 export type DepartmentHeadPlanningDetail = z.infer<
   typeof DepartmentHeadPlanningDetailSchema
+>
+export type DepartmentHeadPlanningObservation = z.infer<
+  typeof DepartmentHeadPlanningObservationSchema
 >
 export type DepartmentHeadPlanningReviewStatus = z.infer<
   typeof DepartmentHeadPlanningReviewStatusSchema
